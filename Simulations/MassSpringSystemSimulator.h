@@ -25,6 +25,10 @@ public:
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
 
+	// Frame Functions
+
+	void drawRandomObjects();
+
 	// Specific Functions
 	void setMass(float mass);
 	void setStiffness(float stiffness);
@@ -54,5 +58,9 @@ private:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+
+	Vec3  m_vfMovableObjectPos;
+	Vec3  m_vfMovableObjectFinalPos;
+	Vec3  m_vfRotate;
 };
 #endif
