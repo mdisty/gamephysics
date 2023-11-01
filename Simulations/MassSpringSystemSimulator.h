@@ -2,6 +2,8 @@
 #define MASSSPRINGSYSTEMSIMULATOR_h
 #include "Simulator.h"
 
+#include <vector>
+
 // Do Not Change
 #define EULER 0
 #define LEAPFROG 1
@@ -15,7 +17,12 @@ public:
 	MassSpringSystemSimulator();
 	
 	// UI Functions
+
+	/*
+	* Creates the test cases in the menu
+	*/
 	const char * getTestCasesStr();
+
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
@@ -29,7 +36,7 @@ public:
 	void setMass(float mass);
 	void setStiffness(float stiffness);
 	void setDampingFactor(float damping);
-	int addMassPoint(Vec3 position, Vec3 Velocity, bool isFixed);
+	int addMassPoint(Vec3 position, Vec3 velocity, bool isFixed);
 	void addSpring(int masspoint1, int masspoint2, float initialLength);
 	int getNumberOfMassPoints();
 	int getNumberOfSprings();
@@ -43,11 +50,26 @@ public:
 	}
 
 private:
+	struct MassPoint {
+		Vec3 position;
+		Vec3 veloctiy;
+		bool isFixed;
+	};
+
+	struct Spring {
+		int masspoint1;
+		int masspoint2;
+		float length;
+	};
+
 	// Data Attributes
 	float m_fMass;
 	float m_fStiffness;
 	float m_fDamping;
 	int m_iIntegrator;
+
+	vector<MassPoint> massPoints;
+	vector<Spring> springs;
 
 	// UI Attributes
 	Vec3 m_externalForce;
