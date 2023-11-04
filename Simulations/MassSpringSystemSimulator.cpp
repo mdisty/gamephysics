@@ -25,12 +25,27 @@ void MassSpringSystemSimulator::reset()
 	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
+void MassSpringSystemSimulator::drawDemo2()
+{
+	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
+	DUC->drawSphere(massPoints.at(0).position, 0.05f);
+
+	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(70.0 / 255.0, 52.0 / 255.0, 235.0 / 255.0));
+	DUC->drawSphere(massPoints.at(1).position, 0.05f);
+	
+	DUC->beginLine();
+	DUC->drawLine(massPoints.at(0).position, Vec3(1.0, 1.0, 1.0), massPoints.at(1).position, Vec3(1.0, 1.0, 1.0));
+	DUC->endLine();
+}
+
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	switch (m_iTestCase)
 	{
 	case 0: break; // Demo 1
-	case 1: break; // Demo 2
+	case 1:
+		drawDemo2();
+		break;
 	case 2: break; // Demo 3
 	case 3: break; // Demo 4
 	}
@@ -43,6 +58,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	switch (m_iTestCase) {
 	case 0: {
 		massPoints.clear();
+		springs.clear();
 
 		setMass(10);
 		setStiffness(40);
@@ -60,7 +76,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 
 		calculateExplicitEulerStep(0.1);
 
-		cout << "---- DEMO 0 ----" << endl;
+		cout << "---- DEMO 1 ----" << endl;
 		cout << "Point 0: " << massPoints.at(0).position << endl;
 		cout << "Point 1: " << massPoints.at(1).position << endl;
 		cout << "Velocity 0: " << massPoints.at(0).veloctiy << endl;
@@ -68,7 +84,26 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 
 		break;
 	}
-	case 1: break;
+	case 1: {
+		massPoints.clear();
+		springs.clear();
+
+		setMass(10);
+		setStiffness(40);
+		setDampingFactor(0);
+
+		Vec3 p0{ 0., 0., 0. };
+		Vec3 p1{ 0., 2., 0. };
+		Vec3 v0{ -1., 0., 0. };
+		Vec3 v1{ 1., 0., 0. };
+
+		addMassPoint(p0, v0, false);
+		addMassPoint(p1, v1, false);
+
+		addSpring(0, 1, 1.0);
+
+		break;
+	}
 	case 2: break;
 	case 3: break;
 	}
@@ -86,7 +121,9 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	case 0: {
 		break;
 	}
-	case 1: break; // Demo 2
+	case 1: 
+		calculateExplicitEulerStep(0.0001);
+		break; // Demo 2
 	case 2: break; // Demo 3
 	case 3: break; // Demo 4
 	}

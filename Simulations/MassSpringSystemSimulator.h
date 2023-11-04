@@ -38,6 +38,7 @@ public:
 
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
+	void drawDemo2();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
