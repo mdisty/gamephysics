@@ -60,7 +60,7 @@ public:
 
 	// Integration Methods
 	void calculateExplicitEulerStep(float timeStep);
-	Vec3 calculateForce(Spring s);
+	Vec3 calculateForce(Spring s, int pointIndex);
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {

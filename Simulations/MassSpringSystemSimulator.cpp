@@ -94,8 +94,8 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 
 		Vec3 p0{ 0., 0., 0. };
 		Vec3 p1{ 0., 2., 0. };
-		Vec3 v0{ -1., 0., 0. };
-		Vec3 v1{ 1., 0., 0. };
+		Vec3 v0{ 0., 0., 0. };
+		Vec3 v1{ 0., 0., 0. };
 
 		addMassPoint(p0, v0, false);
 		addMassPoint(p1, v1, false);
@@ -122,7 +122,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		break;
 	}
 	case 1: 
-		calculateExplicitEulerStep(0.0001);
+		calculateExplicitEulerStep(timeStep);
 		break; // Demo 2
 	case 2: break; // Demo 3
 	case 3: break; // Demo 4
@@ -221,7 +221,7 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 		Vec3 force{};
 
 		for (Spring s : pSprings) {
-			force += calculateForce(s);
+			force += calculateForce(s, i);
 		}
 
 		Vec3 acceleration = force / m_fMass;
@@ -241,9 +241,16 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 	}
 }
 
-Vec3 MassSpringSystemSimulator::calculateForce(Spring s)
+Vec3 MassSpringSystemSimulator::calculateForce(Spring s, int pointIndex)
 {
-	Vec3 d = massPoints.at(s.masspoint1).position - massPoints.at(s.masspoint2).position;
+	Vec3 d{};
+	if (s.masspoint1 == pointIndex) {
+		d = massPoints.at(s.masspoint1).position - massPoints.at(s.masspoint2).position;
+	}
+	else {
+		d = massPoints.at(s.masspoint2).position - massPoints.at(s.masspoint1).position;
+	}
+
 	float length = normalize(d);
 
 	return -m_fStiffness * (length - s.length) * d;
