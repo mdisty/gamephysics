@@ -48,13 +48,23 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setStiffness(40);
 		setDampingFactor(0);
 		
-		Vec3 p0{ 0, 0, 0 };
-		Vec3 p1{ 0, 2, 0 };
-		Vec3 v0{ -1, 0, 0 };
-		Vec3 v1{ 1, 0, 0 };
+		Vec3 p0{ 0., 0., 0. };
+		Vec3 p1{ 0., 2., 0. };
+		Vec3 v0{ -1., 0., 0. };
+		Vec3 v1{ 1., 0., 0. };
 
 		addMassPoint(p0, v0, false);
 		addMassPoint(p1, v1, false);
+
+		addSpring(0, 1, 1.0);
+
+		calculateExplicitEulerStep(0.1);
+
+		cout << "---- DEMO 0 ----" << endl;
+		cout << "Point 0: " << massPoints.at(0).position << endl;
+		cout << "Point 1: " << massPoints.at(1).position << endl;
+		cout << "Velocity 0: " << massPoints.at(0).veloctiy << endl;
+		cout << "Velocity 1: " << massPoints.at(1).veloctiy << endl;
 
 		break;
 	}
@@ -71,7 +81,15 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
-	//TODO
+	switch (m_iTestCase)
+	{
+	case 0: {
+		break;
+	}
+	case 1: break; // Demo 2
+	case 2: break; // Demo 3
+	case 3: break; // Demo 4
+	}
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
@@ -139,4 +157,57 @@ Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
 void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
 	// TODO
+}
+
+// Integration Methods
+
+void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
+{
+	vector<Vec3> newPositions{};
+	vector<Vec3> newVelocities{};
+
+	for (size_t i = 0; i < massPoints.size(); ++i) {
+		MassPoint currentPoint = massPoints.at(i);
+
+		// Calculate new velocity
+		vector<Spring> pSprings{};
+
+		for (Spring s : springs) {
+			if (s.masspoint1 == i) {
+				pSprings.emplace_back(s);
+			}
+			else if (s.masspoint2 == i) {
+				pSprings.emplace_back(s);
+			}
+		}
+
+		Vec3 force{};
+
+		for (Spring s : pSprings) {
+			force += calculateForce(s);
+		}
+
+		Vec3 acceleration = force / m_fMass;
+		Vec3 pVelocityNext = currentPoint.veloctiy + timeStep * acceleration;
+
+		// Calculate new position
+		Vec3 pPositionNext = currentPoint.position + timeStep * currentPoint.veloctiy;
+
+		newVelocities.emplace_back(pVelocityNext);
+		newPositions.emplace_back(pPositionNext);
+	}
+
+	// Set new values
+	for (size_t i = 0; i < massPoints.size(); ++i) {
+		massPoints.at(i).position = newPositions.at(i);
+		massPoints.at(i).veloctiy = newVelocities.at(i);
+	}
+}
+
+Vec3 MassSpringSystemSimulator::calculateForce(Spring s)
+{
+	Vec3 d = massPoints.at(s.masspoint1).position - massPoints.at(s.masspoint2).position;
+	float length = normalize(d);
+
+	return -m_fStiffness * (length - s.length) * d;
 }

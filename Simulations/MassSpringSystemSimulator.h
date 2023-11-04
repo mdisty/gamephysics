@@ -15,6 +15,19 @@ class MassSpringSystemSimulator:public Simulator{
 public:
 	// Construtors
 	MassSpringSystemSimulator();
+
+	// Structs
+	struct MassPoint {
+		Vec3 position;
+		Vec3 veloctiy;
+		bool isFixed;
+	};
+
+	struct Spring {
+		int masspoint1;
+		int masspoint2;
+		float length;
+	};
 	
 	// UI Functions
 
@@ -43,6 +56,10 @@ public:
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
+
+	// Integration Methods
+	void calculateExplicitEulerStep(float timeStep);
+	Vec3 calculateForce(Spring s);
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {
@@ -50,18 +67,6 @@ public:
 	}
 
 private:
-	struct MassPoint {
-		Vec3 position;
-		Vec3 veloctiy;
-		bool isFixed;
-	};
-
-	struct Spring {
-		int masspoint1;
-		int masspoint2;
-		float length;
-	};
-
 	// Data Attributes
 	float m_fMass;
 	float m_fStiffness;
