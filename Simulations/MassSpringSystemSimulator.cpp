@@ -94,8 +94,8 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 
 		Vec3 p0{ 0., 0., 0. };
 		Vec3 p1{ 0., 2., 0. };
-		Vec3 v0{ 0., 0., 0. };
-		Vec3 v1{ 0., 0., 0. };
+		Vec3 v0{ 1., 0., 0. };
+		Vec3 v1{ -1., 0., 0. };
 
 		addMassPoint(p0, v0, false);
 		addMassPoint(p1, v1, false);
@@ -122,7 +122,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		break;
 	}
 	case 1: 
-		calculateExplicitEulerStep(timeStep);
+		calculateExplicitEulerStep(0.005);
 		break; // Demo 2
 	case 2: break; // Demo 3
 	case 3: break; // Demo 4
@@ -224,7 +224,7 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 			force += calculateForce(s, i);
 		}
 
-		Vec3 acceleration = force / m_fMass;
+		Vec3 acceleration = (force - m_fDamping * currentPoint.veloctiy) / m_fMass;
 		Vec3 pVelocityNext = currentPoint.veloctiy + timeStep * acceleration;
 
 		// Calculate new position
