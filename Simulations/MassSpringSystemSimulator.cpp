@@ -38,6 +38,19 @@ void MassSpringSystemSimulator::drawDemo2()
 	DUC->endLine();
 }
 
+void MassSpringSystemSimulator::drawDemo3()
+{
+	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
+	DUC->drawSphere(massPoints.at(0).position, 0.05f);
+
+	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(70.0 / 255.0, 52.0 / 255.0, 235.0 / 255.0));
+	DUC->drawSphere(massPoints.at(1).position, 0.05f);
+
+	DUC->beginLine();
+	DUC->drawLine(massPoints.at(0).position, Vec3(1.0, 1.0, 1.0), massPoints.at(1).position, Vec3(1.0, 1.0, 1.0));
+	DUC->endLine();
+}
+
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	switch (m_iTestCase)
@@ -46,7 +59,9 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 	case 1:
 		drawDemo2();
 		break;
-	case 2: break; // Demo 3
+	case 2: 
+		drawDemo3();
+		break; // Demo 3
 	case 3: break; // Demo 4
 	}
 }
@@ -63,18 +78,19 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setMass(10);
 		setStiffness(40);
 		setDampingFactor(0);
+		setIntegrator(EULER);
 		
 		Vec3 p0{ 0., 0., 0. };
 		Vec3 p1{ 0., 2., 0. };
 		Vec3 v0{ -1., 0., 0. };
 		Vec3 v1{ 1., 0., 0. };
 
-		addMassPoint(p0, v0, false);
-		addMassPoint(p1, v1, false);
+		int ip0 = addMassPoint(p0, v0, false);
+		int ip1 = addMassPoint(p1, v1, false);
 
-		addSpring(0, 1, 1.0);
+		addSpring(ip0, ip1, 1.0);
 
-		calculateExplicitEulerStep(0.1);
+		simulateTimestep(0.1);
 
 		cout << "---- DEMO 1 ----" << endl;
 		cout << "Point 0: " << massPoints.at(0).position << endl;
@@ -91,20 +107,41 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setMass(10);
 		setStiffness(40);
 		setDampingFactor(0);
+		setIntegrator(EULER);
 
 		Vec3 p0{ 0., 0., 0. };
 		Vec3 p1{ 0., 2., 0. };
-		Vec3 v0{ 1., 0., 0. };
-		Vec3 v1{ -1., 0., 0. };
+		Vec3 v0{ -1., 0., 0. };
+		Vec3 v1{ 1., 0., 0. };
 
-		addMassPoint(p0, v0, false);
-		addMassPoint(p1, v1, false);
+		int ip0 = addMassPoint(p0, v0, false);
+		int ip1 = addMassPoint(p1, v1, false);
 
-		addSpring(0, 1, 1.0);
+		addSpring(ip0, ip1, 1.0);
 
 		break;
 	}
-	case 2: break;
+	case 2: {
+		massPoints.clear();
+		springs.clear();
+
+		setMass(10);
+		setStiffness(40);
+		setDampingFactor(0);
+		setIntegrator(MIDPOINT);
+
+		Vec3 p0{ 0., 0., 0. };
+		Vec3 p1{ 0., 2., 0. };
+		Vec3 v0{ -1., 0., 0. };
+		Vec3 v1{ 1., 0., 0. };
+
+		int ip0 = addMassPoint(p0, v0, false);
+		int ip1 = addMassPoint(p1, v1, false);
+
+		addSpring(ip0, ip1, 1.0);
+
+		break;
+	}
 	case 3: break;
 	}
 }
@@ -116,16 +153,15 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
-	switch (m_iTestCase)
-	{
-	case 0: {
+	switch (m_iIntegrator) {
+	case EULER: {
+		calculateExplicitEulerStep(timeStep);
 		break;
 	}
-	case 1: 
-		calculateExplicitEulerStep(0.005);
-		break; // Demo 2
-	case 2: break; // Demo 3
-	case 3: break; // Demo 4
+	case MIDPOINT: {
+		calculateMidpointStep(timeStep);
+		break;
+	}
 	}
 }
 
@@ -200,14 +236,14 @@ void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 
 void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 {
-	vector<Vec3> newPositions{};
-	vector<Vec3> newVelocities{};
+	vector<Vec3> newPositions;
+	vector<Vec3> newVelocities;
 
 	for (size_t i = 0; i < massPoints.size(); ++i) {
 		MassPoint currentPoint = massPoints.at(i);
 
 		// Calculate new velocity
-		vector<Spring> pSprings{};
+		vector<Spring> pSprings;
 
 		for (Spring s : springs) {
 			if (s.masspoint1 == i) {
@@ -218,7 +254,7 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 			}
 		}
 
-		Vec3 force{};
+		Vec3 force;
 
 		for (Spring s : pSprings) {
 			force += calculateForce(s, i);
@@ -229,6 +265,87 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 
 		// Calculate new position
 		Vec3 pPositionNext = currentPoint.position + timeStep * currentPoint.veloctiy;
+
+		newVelocities.emplace_back(pVelocityNext);
+		newPositions.emplace_back(pPositionNext);
+	}
+
+	// Set new values
+	for (size_t i = 0; i < massPoints.size(); ++i) {
+		massPoints.at(i).position = newPositions.at(i);
+		massPoints.at(i).veloctiy = newVelocities.at(i);
+	}
+}
+
+void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
+{
+	vector<Vec3> newPositions;
+	vector<Vec3> newVelocities;
+	vector<MassPoint> oldMassPoints(getNumberOfMassPoints());
+
+	for (size_t i = 0; i < massPoints.size(); ++i) {
+		MassPoint currentPoint = massPoints.at(i);
+		oldMassPoints.at(i) = currentPoint;
+
+		vector<Spring> pSprings;
+
+		// Calculate new velocity
+		for (Spring s : springs) {
+			if (s.masspoint1 == i) {
+				pSprings.emplace_back(s);
+			}
+			else if (s.masspoint2 == i) {
+				pSprings.emplace_back(s);
+			}
+		}
+
+		Vec3 force;
+
+		for (Spring s : pSprings) {
+			force += calculateForce(s, i);
+		}
+
+		Vec3 acceleration = force / m_fMass;
+		Vec3 pVelocityMidstep = currentPoint.veloctiy + 0.5 * timeStep * acceleration;
+		Vec3 pPositionMidstep = currentPoint.position + 0.5 * timeStep * currentPoint.veloctiy;
+
+		newVelocities.emplace_back(pVelocityMidstep);
+		newPositions.emplace_back(pPositionMidstep);
+	}
+
+	// Set midstep values
+	for (size_t i = 0; i < massPoints.size(); ++i) {
+		massPoints.at(i).veloctiy = newVelocities.at(i);
+		massPoints.at(i).position = newPositions.at(i);
+	}
+
+	newVelocities.clear();
+	newPositions.clear();
+
+	for (size_t i = 0; i < massPoints.size(); ++i) {
+		MassPoint currentPoint = massPoints.at(i);
+
+		vector<Spring> pSprings;
+
+		// Calculate new velocity
+		for (Spring s : springs) {
+			if (s.masspoint1 == i) {
+				pSprings.emplace_back(s);
+			}
+			else if (s.masspoint2 == i) {
+				pSprings.emplace_back(s);
+			}
+		}
+
+		Vec3 force;
+
+		for (Spring s : pSprings) {
+			force += calculateForce(s, i);
+		}
+
+		Vec3 accelerationMidstep = (force - m_fDamping * oldMassPoints.at(i).veloctiy) / m_fMass;
+		Vec3 pVelocityNext = oldMassPoints.at(i).veloctiy + timeStep * accelerationMidstep;
+		Vec3 pPositionNext = oldMassPoints.at(i).position + timeStep * currentPoint.veloctiy;
 
 		newVelocities.emplace_back(pVelocityNext);
 		newPositions.emplace_back(pPositionNext);

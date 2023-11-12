@@ -39,6 +39,7 @@ public:
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
 	void drawDemo2();
+	void drawDemo3();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
@@ -60,6 +61,7 @@ public:
 
 	// Integration Methods
 	void calculateExplicitEulerStep(float timeStep);
+	void calculateMidpointStep(float timeStep);
 	Vec3 calculateForce(Spring s, int pointIndex);
 	
 	// Do Not Change
