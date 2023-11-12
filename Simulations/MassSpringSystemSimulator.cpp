@@ -242,6 +242,12 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 	for (size_t i = 0; i < massPoints.size(); ++i) {
 		MassPoint currentPoint = massPoints.at(i);
 
+		if (currentPoint.isFixed) {
+			newVelocities.emplace_back(currentPoint.veloctiy);
+			newPositions.emplace_back(currentPoint.position);
+			continue;
+		}
+
 		// Calculate new velocity
 		vector<Spring> pSprings;
 
@@ -287,6 +293,12 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 		MassPoint currentPoint = massPoints.at(i);
 		oldMassPoints.at(i) = currentPoint;
 
+		if (currentPoint.isFixed) {
+			newVelocities.emplace_back(currentPoint.veloctiy);
+			newPositions.emplace_back(currentPoint.position);
+			continue;
+		}
+
 		vector<Spring> pSprings;
 
 		// Calculate new velocity
@@ -324,6 +336,12 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 
 	for (size_t i = 0; i < massPoints.size(); ++i) {
 		MassPoint currentPoint = massPoints.at(i);
+
+		if (currentPoint.isFixed) {
+			newVelocities.emplace_back(currentPoint.veloctiy);
+			newPositions.emplace_back(currentPoint.position);
+			continue;
+		}
 
 		vector<Spring> pSprings;
 
