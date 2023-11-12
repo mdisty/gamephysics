@@ -5,7 +5,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_iTestCase = 0;
 	massPoints = vector<MassPoint>();
 	springs = vector<Spring>();
-	//TODO
+	m_externalForce = { 0.0f, 0.0f, 0.0f };
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr()
@@ -78,6 +78,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setMass(10);
 		setStiffness(40);
 		setDampingFactor(0);
+		applyExternalForce(Vec3{ 0.0f, 0.0f, 0.0f });
 		setIntegrator(EULER);
 		
 		Vec3 p0{ 0., 0., 0. };
@@ -107,6 +108,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setMass(10);
 		setStiffness(40);
 		setDampingFactor(0);
+		applyExternalForce(Vec3{ 0.0f, 0.0f, 0.0f });
 		setIntegrator(EULER);
 
 		Vec3 p0{ 0., 0., 0. };
@@ -128,6 +130,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setMass(10);
 		setStiffness(40);
 		setDampingFactor(0);
+		applyExternalForce(Vec3{ 0.0f, 0.0f, 0.0f });
 		setIntegrator(MIDPOINT);
 
 		Vec3 p0{ 0., 0., 0. };
@@ -229,7 +232,7 @@ Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
 
 void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
-	// TODO
+	m_externalForce = force;
 }
 
 // Integration Methods
@@ -265,6 +268,8 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 		for (Spring s : pSprings) {
 			force += calculateForce(s, i);
 		}
+
+		force += m_externalForce;
 
 		Vec3 acceleration = (force - m_fDamping * currentPoint.veloctiy) / m_fMass;
 		Vec3 pVelocityNext = currentPoint.veloctiy + timeStep * acceleration;
@@ -317,6 +322,8 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 			force += calculateForce(s, i);
 		}
 
+		force += m_externalForce;
+
 		Vec3 acceleration = force / m_fMass;
 		Vec3 pVelocityMidstep = currentPoint.veloctiy + 0.5 * timeStep * acceleration;
 		Vec3 pPositionMidstep = currentPoint.position + 0.5 * timeStep * currentPoint.veloctiy;
@@ -360,6 +367,8 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 		for (Spring s : pSprings) {
 			force += calculateForce(s, i);
 		}
+
+		force += m_externalForce;
 
 		Vec3 accelerationMidstep = (force - m_fDamping * oldMassPoints.at(i).veloctiy) / m_fMass;
 		Vec3 pVelocityNext = oldMassPoints.at(i).veloctiy + timeStep * accelerationMidstep;
