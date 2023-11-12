@@ -6,6 +6,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	massPoints = vector<MassPoint>();
 	springs = vector<Spring>();
 	m_externalForce = { 0.0f, 0.0f, 0.0f };
+	m_iIntegrator = EULER;
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr()
@@ -51,18 +52,35 @@ void MassSpringSystemSimulator::drawDemo3()
 	DUC->endLine();
 }
 
+void MassSpringSystemSimulator::drawDemo4()
+{
+	//TODO
+	for (int i = 0; i < getNumberOfMassPoints(); ++i) {
+		DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
+		DUC->drawSphere(massPoints.at(i).position, 0.05f);
+	}
+	
+	for (int i = 0; i < getNumberOfSprings(); ++i) {
+		DUC->beginLine();
+		DUC->drawLine(massPoints.at(springs.at(i).masspoint1).position, Vec3(1.0, 1.0, 1.0), massPoints.at(springs.at(i).masspoint2).position, Vec3(1.0, 1.0, 1.0));
+		DUC->endLine();
+	}
+}
+
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	switch (m_iTestCase)
 	{
-	case 0: break; // Demo 1
+	case 0: break;
 	case 1:
 		drawDemo2();
 		break;
 	case 2: 
 		drawDemo3();
-		break; // Demo 3
-	case 3: break; // Demo 4
+		break;
+	case 3: 
+		drawDemo4();
+		break;
 	}
 }
 
@@ -145,7 +163,68 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 
 		break;
 	}
-	case 3: break;
+	case 3: {
+		TwType TW_TYPE_TESTCASE = TwDefineEnumFromString("Integrator", "EULER,LEAPFROG,MIDPOINT");
+		TwAddVarRW(DUC->g_pTweakBar, "Integrator", TW_TYPE_TESTCASE, &m_iIntegrator, "");
+
+		massPoints.clear();
+		springs.clear();
+			
+		setMass(10);
+		setStiffness(50);
+		setDampingFactor(1);
+		applyExternalForce(Vec3{ 0.0f, -9.81f, 0.0f });
+
+		Vec3 p0{ 0.0f, 2.0f            , 0.0f };
+
+		Vec3 p2{ 0.0f, 2.0f * 2.0f/3.0f, 0.0f };
+		Vec3 p5{ 0.0f, 2.0f/3.0f       , 0.0f };
+		Vec3 p8{ 0.0f, 0.0f            , 0.0f };
+
+		Vec3 p1 = p2 - Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
+		Vec3 p4 = p5 - Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
+		Vec3 p7 = p8 - Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
+
+		Vec3 p3 = p2 + Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
+		Vec3 p6 = p5 + Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
+		Vec3 p9 = p8 + Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
+
+		Vec3 v{ 0.0f, 0.0f, 0.0f };
+
+		int ip0 = addMassPoint(p0, v, true);
+		int ip1 = addMassPoint(p1, v, false);
+		int ip2 = addMassPoint(p2, v, false);
+		int ip3 = addMassPoint(p3, v, false);
+		int ip4 = addMassPoint(p4, v, false);
+		int ip5 = addMassPoint(p5, v, false);
+		int ip6 = addMassPoint(p6, v, false);
+		int ip7 = addMassPoint(p7, v, false);
+		int ip8 = addMassPoint(p8, v, false);
+		int ip9 = addMassPoint(p9, v, false);
+
+		addSpring(ip0, ip1, 2.0f / 3.0f);
+		addSpring(ip0, ip2, 2.0f / 3.0f);
+		addSpring(ip0, ip3, 2.0f / 3.0f);
+
+		addSpring(ip1, ip2, 2.0f / 3.0f);
+		addSpring(ip2, ip3, 2.0f / 3.0f);
+
+		addSpring(ip1, ip4, 2.0f / 3.0f);
+		addSpring(ip2, ip5, 2.0f / 3.0f);
+		addSpring(ip3, ip6, 2.0f / 3.0f);
+
+		addSpring(ip4, ip5, 2.0f / 3.0f);
+		addSpring(ip5, ip6, 2.0f / 3.0f);
+
+		addSpring(ip4, ip7, 2.0f / 3.0f);
+		addSpring(ip5, ip8, 2.0f / 3.0f);
+		addSpring(ip6, ip9, 2.0f / 3.0f);
+
+		addSpring(ip7, ip8, 2.0f / 3.0f);
+		addSpring(ip8, ip9, 2.0f / 3.0f);
+
+		break; 
+	}
 	}
 }
 
@@ -170,14 +249,16 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 
 void MassSpringSystemSimulator::onClick(int x, int y)
 {
-	m_trackmouse.x = x;
-	m_trackmouse.y = y;
+	oldClick.x = click.x;
+	oldClick.y = click.y;
+	click.x = x;
+	click.y = y;
 }
 
 void MassSpringSystemSimulator::onMouse(int x, int y)
 {
-	m_oldtrackmouse.x = x;
-	m_oldtrackmouse.y = y;
+	m_oldtrackmouse.x = m_trackmouse.x;
+	m_oldtrackmouse.y = m_trackmouse.y;
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
 }
@@ -283,8 +364,16 @@ void MassSpringSystemSimulator::calculateExplicitEulerStep(float timeStep)
 
 	// Set new values
 	for (size_t i = 0; i < massPoints.size(); ++i) {
-		massPoints.at(i).position = newPositions.at(i);
-		massPoints.at(i).veloctiy = newVelocities.at(i);
+		// Collision detection with ground plane
+		if (newPositions.at(i).y <= -1.0f) {
+			Vec3 n{ 0.0f, 1.0f, 0.0f };
+			Vec3 v = newVelocities.at(i) - 2 * dot(newVelocities.at(i), n) * n;
+			massPoints.at(i).veloctiy = v;
+		}
+		else {
+			massPoints.at(i).position = newPositions.at(i);
+			massPoints.at(i).veloctiy = newVelocities.at(i);
+		}
 	}
 }
 
@@ -306,7 +395,7 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 
 		vector<Spring> pSprings;
 
-		// Calculate new velocity
+		// Calculate midpoint velocity
 		for (Spring s : springs) {
 			if (s.masspoint1 == i) {
 				pSprings.emplace_back(s);
@@ -326,6 +415,8 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 
 		Vec3 acceleration = force / m_fMass;
 		Vec3 pVelocityMidstep = currentPoint.veloctiy + 0.5 * timeStep * acceleration;
+
+		// Calculate midpoint position
 		Vec3 pPositionMidstep = currentPoint.position + 0.5 * timeStep * currentPoint.veloctiy;
 
 		newVelocities.emplace_back(pVelocityMidstep);
@@ -372,6 +463,8 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 
 		Vec3 accelerationMidstep = (force - m_fDamping * oldMassPoints.at(i).veloctiy) / m_fMass;
 		Vec3 pVelocityNext = oldMassPoints.at(i).veloctiy + timeStep * accelerationMidstep;
+
+		// Calculate new position
 		Vec3 pPositionNext = oldMassPoints.at(i).position + timeStep * currentPoint.veloctiy;
 
 		newVelocities.emplace_back(pVelocityNext);
@@ -380,8 +473,16 @@ void MassSpringSystemSimulator::calculateMidpointStep(float timeStep)
 
 	// Set new values
 	for (size_t i = 0; i < massPoints.size(); ++i) {
-		massPoints.at(i).position = newPositions.at(i);
-		massPoints.at(i).veloctiy = newVelocities.at(i);
+		// Collision detection with ground plane
+		if (newPositions.at(i).y <= -1.0f) {
+			Vec3 n{ 0.0f, 1.0f, 0.0f };
+			Vec3 v = newVelocities.at(i) - 2 * dot(newVelocities.at(i), n) * n;
+			massPoints.at(i).veloctiy = v;
+		}
+		else {
+			massPoints.at(i).position = newPositions.at(i);
+			massPoints.at(i).veloctiy = newVelocities.at(i);
+		}
 	}
 }
 

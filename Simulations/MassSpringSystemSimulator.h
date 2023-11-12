@@ -40,6 +40,7 @@ public:
 	void reset();
 	void drawDemo2();
 	void drawDemo3();
+	void drawDemo4();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
@@ -82,6 +83,8 @@ private:
 	// UI Attributes
 	Vec3 m_externalForce;
 	Point2D m_mouse;
+	Point2D click;
+	Point2D oldClick;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
 };
