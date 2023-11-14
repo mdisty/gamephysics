@@ -58,6 +58,7 @@ public:
 	int getNumberOfSprings();
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
+	void setExternalForce(Vec3 force);
 	void applyExternalForce(Vec3 force);
 
 	// Integration Methods
@@ -76,12 +77,15 @@ private:
 	float m_fStiffness;
 	float m_fDamping;
 	int m_iIntegrator;
+	int selectedMassPoint;
+	Vec3 gravity;
 
 	vector<MassPoint> massPoints;
 	vector<Spring> springs;
 
 	// UI Attributes
 	Vec3 m_externalForce;
+	Vec3 individualExternalForce;
 	Point2D m_mouse;
 	Point2D click;
 	Point2D oldClick;
