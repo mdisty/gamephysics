@@ -36,6 +36,10 @@ public:
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
+	void eulerIntegration(float h);
+	void midpointIntegration(float h);
+	void forcesCalculations();
+	void clearForces();
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {
@@ -43,11 +47,41 @@ public:
 	}
 
 private:
+	// Structs
+	struct MassPoint {
+		Vec3 position, finalPosition, velocity, force;
+		float mass;
+		bool isFixed;
+
+		// NOTE: This constructor was auto-generated with Visual Studio 2022, not written by me!
+		
+
+		MassPoint(const Vec3& position, const Vec3& velocity, const Vec3& force, float mass, bool isFixed)
+			: position(position), velocity(velocity), finalPosition(position), force(force), mass(mass), isFixed(isFixed)
+		{
+		}
+	};
+
+	struct Spring {
+		int MassPoint1, MassPoint2;
+		float initialLenght, stiffness;
+
+		// NOTE: This constructor was auto-generated with Visual Studio 2022, not written by me!
+		Spring(int MassPoint1, int Masspoint2, float initialLenght, float stiffness)
+			: MassPoint1(MassPoint1), MassPoint2(Masspoint2), initialLenght(initialLenght), stiffness(stiffness)
+		{
+		}
+	};
+
 	// Data Attributes
 	float m_fMass;
 	float m_fStiffness;
 	float m_fDamping;
 	int m_iIntegrator;
+	bool m_useMidpoint;
+
+	std::vector<MassPoint> m_massPoints;
+	std::vector<Spring> m_springs;
 
 	// UI Attributes
 	Vec3 m_externalForce;
