@@ -169,10 +169,12 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	case 3: {
 		TwType integratorType = TwDefineEnum("Integrator", NULL, 0);
 		TwAddVarRW(DUC->g_pTweakBar, "Integrator", integratorType, &m_iIntegrator, " enum='0 {Euler}, 2 {Midpoint}' ");
-		TwAddVarRW(DUC->g_pTweakBar, "How to interact", TW_TYPE_CSSTRING(sizeof(info)), info, "");
-		TwAddVarRW(DUC->g_pTweakBar, "| ", TW_TYPE_CSSTRING(sizeof(info1)), info1, "");
-		TwAddVarRW(DUC->g_pTweakBar, "|  ", TW_TYPE_CSSTRING(sizeof(info2)), info2, "");
-		TwAddVarRW(DUC->g_pTweakBar, "|   ", TW_TYPE_CSSTRING(sizeof(info3)), info3, "");
+		TwAddVarRO(DUC->g_pTweakBar, "How to interact", TW_TYPE_STDSTRING, &info, "");
+		TwAddVarRO(DUC->g_pTweakBar, " ", TW_TYPE_STDSTRING, &info1, "");
+		TwAddVarRO(DUC->g_pTweakBar, "  ", TW_TYPE_STDSTRING, &info2, "");
+		TwAddVarRO(DUC->g_pTweakBar, "   ", TW_TYPE_STDSTRING, &info3, "");
+		TwAddVarRO(DUC->g_pTweakBar, "    ", TW_TYPE_STDSTRING, &info4, "");
+		TwAddVarRO(DUC->g_pTweakBar, "     ", TW_TYPE_STDSTRING, &info5, "");
 
 		massPoints.clear();
 		springs.clear();
@@ -304,9 +306,29 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 	if(m_iTestCase == 3) {
+		// Rotate direction depending on camera view point
+		Vec3 defaultViewDirectinon{ 0.0f, 0.0f, 1.0f };
+		Vec3 viewDirection{ DUC->g_camera.GetLookAtPt() - DUC->g_camera.GetEyePt() };
+		normalize(viewDirection);
+
+		float theta = acos(dot(defaultViewDirectinon, viewDirection) / (norm(defaultViewDirectinon) * norm(viewDirection) ));
+
+		theta = Vec3(DUC->g_camera.GetEyePt()).x < 0 ? theta : -theta;
+
+		float cosTheta{ cos(theta) };
+		float sinTheta{ sin(theta) };
+
 		if (DUC->g_camera.IsMouseLButtonDown()) {
 			Vec3 direction = Vec3(m_trackmouse.x - m_oldtrackmouse.x, m_trackmouse.y - m_oldtrackmouse.y, 0.0f);
-			m_externalForce = gravity + 4 * direction;
+
+			float x = cosTheta*direction.x + sinTheta*direction.z;
+			float y = direction.y;
+			float z = -sinTheta * direction.x + cosTheta * direction.z;
+
+			Vec3 rotDirection{ x,y,z };
+			normalize(rotDirection);
+
+			m_externalForce = gravity + 4 * rotDirection;
 		}
 		else {
 			if (m_externalForce.x > gravity.x) {

@@ -44,8 +44,19 @@ public:
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
+	/*
+	Simulates one timeStep depending on the selected demo.
+	*/
 	void simulateTimestep(float timeStep);
+	/*
+	Updates the oldClick variable and click variable with the
+	old and current click position.
+	*/
 	void onClick(int x, int y);
+	/*
+	Updates the m_oldtrackmouse variable and m_trackmouse variable with the
+	old and current mouse position.
+	*/
 	void onMouse(int x, int y);
 
 	// Specific Functions
@@ -58,12 +69,35 @@ public:
 	int getNumberOfSprings();
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
+
+	/*
+	Sets the external force to the passed value.
+	*/
 	void setExternalForce(Vec3 force);
+
+	/*
+	Adds the passed value to the external force.
+	*/
 	void applyExternalForce(Vec3 force);
 
 	// Integration Methods
+	
+	/*
+	Calculates one explicit euler step with the given timeStep.
+	Saves everything in the massPoints and springs vectors.
+	*/
 	void calculateExplicitEulerStep(float timeStep);
+
+	/*
+	Calculates one midstep step with the given timeStep. 
+	Saves everything in the massPoints and springs vectors.
+	*/
 	void calculateMidpointStep(float timeStep);
+
+	/*
+	Calculates the force for a specific point and a spring with Hookslaw.
+	\return The calculated force as a Vec3.
+	*/
 	Vec3 calculateForce(Spring s, int pointIndex);
 	
 	// Do Not Change
@@ -80,10 +114,12 @@ private:
 	int selectedMassPoint;
 	Vec3 gravity;
 
-	char info[100] = "Click and drag";
-	char info1[100] = "your mouse";
-	char info2[100] = "to apply external forces";
-	char info3[100] = "to the objects in the scene.";
+	string info = "Click and drag";
+	string info1 = "your mouse";
+	string info2 = "to apply";
+	string info3 = "external forces";
+	string info4 = "to the objects";
+	string info5 = "in the scene.";
 
 	vector<MassPoint> massPoints;
 	vector<Spring> springs;
