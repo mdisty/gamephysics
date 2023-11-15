@@ -80,6 +80,11 @@ private:
 	int selectedMassPoint;
 	Vec3 gravity;
 
+	char info[100] = "Click and drag";
+	char info1[100] = "your mouse";
+	char info2[100] = "to apply external forces";
+	char info3[100] = "to the objects in the scene.";
+
 	vector<MassPoint> massPoints;
 	vector<Spring> springs;
 

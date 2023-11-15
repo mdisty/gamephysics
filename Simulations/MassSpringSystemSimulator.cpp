@@ -56,14 +56,16 @@ void MassSpringSystemSimulator::drawDemo3()
 
 void MassSpringSystemSimulator::drawDemo4()
 {
+	std::mt19937 eng;
+	std::uniform_real_distribution<float> randCol(0.0f, 1.0f);
 	for (int i = 0; i < getNumberOfMassPoints(); ++i) {
-		DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
+		DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(1.5 * randCol(eng), 0.6 * randCol(eng), 1.5 * randCol(eng))); //Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0)
 		DUC->drawSphere(massPoints.at(i).position, 0.05f);
 	}
 	
 	for (int i = 0; i < getNumberOfSprings(); ++i) {
 		DUC->beginLine();
-		DUC->drawLine(massPoints.at(springs.at(i).masspoint1).position, Vec3(1.0, 1.0, 1.0), massPoints.at(springs.at(i).masspoint2).position, Vec3(1.0, 1.0, 1.0));
+		DUC->drawLine(massPoints.at(springs.at(i).masspoint1).position,  Vec3(1.5 * randCol(eng), 0.6 * randCol(eng), 1.5 * randCol(eng)), massPoints.at(springs.at(i).masspoint2).position, Vec3(1.5 * randCol(eng), 0.6*randCol(eng), 1.5 *randCol(eng)));
 		DUC->endLine();
 	}
 }
@@ -167,6 +169,10 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	case 3: {
 		TwType integratorType = TwDefineEnum("Integrator", NULL, 0);
 		TwAddVarRW(DUC->g_pTweakBar, "Integrator", integratorType, &m_iIntegrator, " enum='0 {Euler}, 2 {Midpoint}' ");
+		TwAddVarRW(DUC->g_pTweakBar, "How to interact", TW_TYPE_CSSTRING(sizeof(info)), info, "");
+		TwAddVarRW(DUC->g_pTweakBar, "| ", TW_TYPE_CSSTRING(sizeof(info1)), info1, "");
+		TwAddVarRW(DUC->g_pTweakBar, "|  ", TW_TYPE_CSSTRING(sizeof(info2)), info2, "");
+		TwAddVarRW(DUC->g_pTweakBar, "|   ", TW_TYPE_CSSTRING(sizeof(info3)), info3, "");
 
 		massPoints.clear();
 		springs.clear();
@@ -289,54 +295,6 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		addSpring(ip32, ip02, 1.0f);
 		addSpring(ip32, ip12, 1.0f);
 		addSpring(ip32, ip22, 1.0f);
-
-		/*Vec3 p0{0.0f, 2.0f              , 0.0f};
-
-		Vec3 p2{ 0.0f, 2.0f * 2.0f / 3.0f, 0.0f };
-		Vec3 p5{ 0.0f, 2.0f / 3.0f       , 0.0f };
-		Vec3 p8{ 0.0f, 0.0f              , 0.0f };
-
-		Vec3 p1 = p2 - Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
-		Vec3 p4 = p5 - Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
-		Vec3 p7 = p8 - Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
-
-		Vec3 p3 = p2 + Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
-		Vec3 p6 = p5 + Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
-		Vec3 p9 = p8 + Vec3{ 2.0f / 3.0f, 0.0f, 0.0f };
-
-		Vec3 v{ 0.0f, 0.0f, 0.0f };
-
-		int ip0 = addMassPoint(p0, v, true);
-		int ip1 = addMassPoint(p1, v, false);
-		int ip2 = addMassPoint(p2, v, false);
-		int ip3 = addMassPoint(p3, v, false);
-		int ip4 = addMassPoint(p4, v, false);
-		int ip5 = addMassPoint(p5, v, false);
-		int ip6 = addMassPoint(p6, v, false);
-		int ip7 = addMassPoint(p7, v, false);
-		int ip8 = addMassPoint(p8, v, false);
-		int ip9 = addMassPoint(p9, v, false);
-
-		addSpring(ip0, ip1, 2.0f / 3.0f);
-		addSpring(ip0, ip2, 2.0f / 3.0f);
-		addSpring(ip0, ip3, 2.0f / 3.0f);
-
-		addSpring(ip1, ip2, 2.0f / 3.0f);
-		addSpring(ip2, ip3, 2.0f / 3.0f);
-
-		addSpring(ip1, ip4, 2.0f / 3.0f);
-		addSpring(ip2, ip5, 2.0f / 3.0f);
-		addSpring(ip3, ip6, 2.0f / 3.0f);
-
-		addSpring(ip4, ip5, 2.0f / 3.0f);
-		addSpring(ip5, ip6, 2.0f / 3.0f);
-
-		addSpring(ip4, ip7, 2.0f / 3.0f);
-		addSpring(ip5, ip8, 2.0f / 3.0f);
-		addSpring(ip6, ip9, 2.0f / 3.0f);
-
-		addSpring(ip7, ip8, 2.0f / 3.0f);
-		addSpring(ip8, ip9, 2.0f / 3.0f);*/
 
 		break;
 	}
