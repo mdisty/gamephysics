@@ -89,7 +89,22 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 		DUC->beginLine();
 		for (int i = 0; i < m_springs.size(); ++i)
 		{
-			DUC->drawLine(getPositionOfMassPoint(m_springs[i].MassPoint1), Vec3(1), getPositionOfMassPoint(m_springs[i].MassPoint2), Vec3(1));
+			if (i < 3) // Wäscheleine (Gelb)
+			{
+				DUC->drawLine(getPositionOfMassPoint(m_springs[i].MassPoint1), Vec3(1, 1, 0), getPositionOfMassPoint(m_springs[i].MassPoint2), Vec3(1, 1, 0));
+			}
+			else if (i < 20) // Tuch (Lila)
+			{
+				DUC->drawLine(getPositionOfMassPoint(m_springs[i].MassPoint1), Vec3(0.5f, 0, 0.5f), getPositionOfMassPoint(m_springs[i].MassPoint2), Vec3(0.5f, 0.0f, 0.5f));
+			}
+			else if (i < 34) // Gestell (Weiß)
+			{
+				DUC->drawLine(getPositionOfMassPoint(m_springs[i].MassPoint1), Vec3(1), getPositionOfMassPoint(m_springs[i].MassPoint2), Vec3(1));
+			}
+			else // Stützen (Black)
+			{
+				DUC->drawLine(getPositionOfMassPoint(m_springs[i].MassPoint1), Vec3(0.05f), getPositionOfMassPoint(m_springs[i].MassPoint2), Vec3(0.05f));
+			}
 		}
 		DUC->endLine();
 		break;
@@ -171,6 +186,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		m_massPoints.clear();
 		m_springs.clear();
 
+		/*
 		// Add Masspoints
 		addMassPoint(Vec3(-0.5f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 0.0f), true); // 0
 		addMassPoint(Vec3(-0.25f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 0.0f), true); // 1
@@ -221,11 +237,88 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		addSpring(12, 13, 0.25f);
 		addSpring(13, 14, 0.45f);
 		addSpring(14, 15, 0.25f);
+		*/
+
+		// Black
+		addMassPoint(Vec3(10.0f, 10.0f, 10.0f), Vec3(0.0f), true); // 0
+		addMassPoint(Vec3(-1.0f, 1.0f, 0.0f), Vec3(0.0f), false); // 1
+		addMassPoint(Vec3(-0.5f, 1.0f, 0.0f), Vec3(0.0f), false); // 2
+		addMassPoint(Vec3(0.0f, 1.0f, 0.0f), Vec3(0.0f), false); // 3
+		addMassPoint(Vec3(0.5f, 1.0f, 0.0f), Vec3(0.0f), false); // 4
+		addMassPoint(Vec3(1.0f, 1.0f, 0.0f), Vec3(0.0f), false); // 5
+		addMassPoint(Vec3(-0.5f, 1.5f, 0.0f), Vec3(0.0f), false); // 6
+		addMassPoint(Vec3(0.0f, 1.5f, 0.0f), Vec3(0.0f), false); // 7
+		addMassPoint(Vec3(0.5f, 1.5f, 0.0f), Vec3(0.0f), false); // 8
+		addMassPoint(Vec3(-0.5f, 2.0f, 0.0f), Vec3(0.0f), false); // 9
+		addMassPoint(Vec3(0.0f, 2.0f, 0.0f), Vec3(0.0f), false); // 10
+		addMassPoint(Vec3(0.5f, 2.0f, 0.0f), Vec3(0.0f), false); // 11
+		addMassPoint(Vec3(-0.5f, 2.5f, 0.0f), Vec3(0.0f, 0.0f, 0.25f), false); // 12
+		addMassPoint(Vec3(0.0f, 2.5f, 0.0f), Vec3(0.0f, 0.0f, 0.25f), false); // 13
+		addMassPoint(Vec3(0.5f, 2.5f, 0.0f), Vec3(0.0f, 0.0f, 0.25f), false); // 14
+		addMassPoint(Vec3(-1.0f, -0.5f, 0.0f), Vec3(0.0f), false); // 15
+		addMassPoint(Vec3(-1.5f, -1.0f, -0.5f), Vec3(0.0f), false); // 16
+		addMassPoint(Vec3(-0.5f, -1.0f, -0.5f), Vec3(0.0f), false); // 17
+		addMassPoint(Vec3(-1.0f, -1.0f, 0.5f), Vec3(0.0f), false); // 18
+		addMassPoint(Vec3(1.0f, -1.0f, -0.5f), Vec3(0.0f), false); // 19
+		addMassPoint(Vec3(1.5f, -1.0f, 0.5f), Vec3(0.0f), false); // 20
+		addMassPoint(Vec3(0.5f, -1.0f, 0.5f), Vec3(0.0f), false); // 21
+		addMassPoint(Vec3(1.0f, -0.5f, 0.0f), Vec3(0.0f), false); // 22
+
+		// Wäscheleine 0-2
+		addSpring(1, 2, 0.5f);
+		addSpring(5, 4, 0.5f);
+		addSpring(5, 1, 2.0f);
+
+		// Tuch 3-19
+		addSpring(3, 2, 0.5f);
+		addSpring(3, 4, 0.5f);
+		addSpring(6, 7, 0.5f);
+		addSpring(8, 7, 0.5f);
+		addSpring(9, 10, 0.5f);
+		addSpring(11, 10, 0.5f);
+		addSpring(12, 13, 0.5f);
+		addSpring(14, 13, 0.5f);
+		addSpring(2, 6, 0.5f);
+		addSpring(9, 6, 0.5f);
+		addSpring(9, 12, 0.5f);
+		addSpring(3, 7, 0.5f);
+		addSpring(10, 7, 0.5f);
+		addSpring(10, 13, 0.5f);
+		addSpring(4, 8, 0.5f);
+		addSpring(11, 8, 0.5f);
+		addSpring(11, 14, 0.5f);
+
+		// Gestell 20-33
+		addSpring(1, 15, 1.5f);
+		addSpring(16, 15, 0.8660f);
+		addSpring(17, 15, 0.8660f);
+		addSpring(18, 15, 0.7071f);
+		addSpring(5, 22, 1.5f);
+		addSpring(21, 22, 0.8660f);
+		addSpring(20, 22, 0.8660f);
+		addSpring(19, 22, 0.7071f);
+		addSpring(16, 17, 1.0f);
+		addSpring(16, 18, 1.118f);
+		addSpring(18, 17, 1.118f);
+		addSpring(21, 20, 1.0f);
+		addSpring(19, 20, 1.118f);
+		addSpring(19, 21, 1.118f);
+		
+		// Assistenz (Hide) 34-...
+		addSpring(16, 1, 2.1213f);
+		addSpring(17, 1, 2.1212f);
+		addSpring(18, 1, 2.0616f);
+		addSpring(20, 5, 2.1213f);
+		addSpring(21, 5, 2.1212f);
+		addSpring(19, 5, 2.0616f);
+		addSpring(15, 5, 2.5f);
+		addSpring(22, 1, 2.5f);
+
 
 		setMass(10);
 		setStiffness(40);
 		setDampingFactor(0.5f);
-		applyExternalForce(Vec3(0.0f, -1.0f, 0.0f));
+		applyExternalForce(Vec3(0.0f, -0.5f, 0.0f));
 		break;
 	default:
 		cout << "Empty Demo!\n";
@@ -377,12 +470,7 @@ void MassSpringSystemSimulator::eulerIntegration(float h)
 		if (m_massPoints[i].isFixed) continue;
 
 		m_massPoints[i].position = m_massPoints[i].position + h * m_massPoints[i].velocity;
-		if (m_massPoints[i].position.y < -0.5) m_massPoints[i].position.y = -0.5;
-		if (m_massPoints[i].position.y > 0.5) m_massPoints[i].position.y = 0.5;
-		if (m_massPoints[i].position.x < -0.5) m_massPoints[i].position.x = -0.5;
-		if (m_massPoints[i].position.x > 0.5) m_massPoints[i].position.x = 0.5;
-		if (m_massPoints[i].position.z < -0.5) m_massPoints[i].position.z = -0.5;
-		if (m_massPoints[i].position.z > 0.5) m_massPoints[i].position.z = 0.5;
+		if (m_massPoints[i].position.y < -1.0) m_massPoints[i].position.y = -1.0;
 		m_massPoints[i].velocity = m_massPoints[i].velocity + h * m_massPoints[i].force;
 	}
 }
@@ -402,12 +490,7 @@ void MassSpringSystemSimulator::midpointIntegration(float h)
 		storePos[i] = getPositionOfMassPoint(i); // Store old Pos and Vel for second Phase
 		storeVel[i] = getVelocityOfMassPoint(i);
 		m_massPoints[i].position = m_massPoints[i].position + h * 0.5f * m_massPoints[i].velocity; // Calculate Pos and Vel at Midpoint
-		if (m_massPoints[i].position.y < -0.5) m_massPoints[i].position.y = -0.5;
-		if (m_massPoints[i].position.y > 0.5) m_massPoints[i].position.y = 0.5;
-		if (m_massPoints[i].position.x < -0.5) m_massPoints[i].position.x = -0.5;
-		if (m_massPoints[i].position.x > 0.5) m_massPoints[i].position.x = 0.5;
-		if (m_massPoints[i].position.z < -0.5) m_massPoints[i].position.z = -0.5;
-		if (m_massPoints[i].position.z > 0.5) m_massPoints[i].position.z = 0.5;
+		if (m_massPoints[i].position.y < -1.0) m_massPoints[i].position.y = -1.0;
 		m_massPoints[i].velocity = m_massPoints[i].velocity + h * 0.5f * m_massPoints[i].force;
 	}
 
@@ -418,12 +501,7 @@ void MassSpringSystemSimulator::midpointIntegration(float h)
 		if (m_massPoints[i].isFixed) continue;
 
 		m_massPoints[i].position = storePos[i] + h * m_massPoints[i].velocity; // Calculate final Pos and Vel
-		if (m_massPoints[i].position.y < -0.5) m_massPoints[i].position.y = -0.5;
-		if (m_massPoints[i].position.y > 0.5) m_massPoints[i].position.y = 0.5;
-		if (m_massPoints[i].position.x < -0.5) m_massPoints[i].position.x = -0.5;
-		if (m_massPoints[i].position.x > 0.5) m_massPoints[i].position.x = 0.5;
-		if (m_massPoints[i].position.z < -0.5) m_massPoints[i].position.z = -0.5;
-		if (m_massPoints[i].position.z > 0.5) m_massPoints[i].position.z = 0.5;
+		if (m_massPoints[i].position.y < -1.0) m_massPoints[i].position.y = -1.0;
 		m_massPoints[i].velocity = storeVel[i] + h * m_massPoints[i].force;
 	}
 }
