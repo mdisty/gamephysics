@@ -30,27 +30,43 @@ void MassSpringSystemSimulator::reset()
 
 void MassSpringSystemSimulator::drawDemo2()
 {
-	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
+	DUC->setUpLighting(Vec3(),
+		0.4 * Vec3(1, 1, 1), 
+		100, 
+		Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
 	DUC->drawSphere(massPoints.at(0).position, 0.05f);
 
-	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(70.0 / 255.0, 52.0 / 255.0, 235.0 / 255.0));
+	DUC->setUpLighting(Vec3(), 
+		0.4 * Vec3(1, 1, 1), 
+		100, 
+		Vec3(70.0 / 255.0, 52.0 / 255.0, 235.0 / 255.0));
 	DUC->drawSphere(massPoints.at(1).position, 0.05f);
 	
 	DUC->beginLine();
-	DUC->drawLine(massPoints.at(0).position, Vec3(1.0, 1.0, 1.0), massPoints.at(1).position, Vec3(1.0, 1.0, 1.0));
+	DUC->drawLine(massPoints.at(0).position, 
+		Vec3(1.0, 1.0, 1.0), 
+		massPoints.at(1).position, 
+		Vec3(1.0, 1.0, 1.0));
 	DUC->endLine();
 }
 
 void MassSpringSystemSimulator::drawDemo3()
 {
-	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
+	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 
+		100, 
+		Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
 	DUC->drawSphere(massPoints.at(0).position, 0.05f);
 
-	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(70.0 / 255.0, 52.0 / 255.0, 235.0 / 255.0));
+	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 
+		100,
+		Vec3(70.0 / 255.0, 52.0 / 255.0, 235.0 / 255.0));
 	DUC->drawSphere(massPoints.at(1).position, 0.05f);
 
 	DUC->beginLine();
-	DUC->drawLine(massPoints.at(0).position, Vec3(1.0, 1.0, 1.0), massPoints.at(1).position, Vec3(1.0, 1.0, 1.0));
+	DUC->drawLine(massPoints.at(0).position, 
+		Vec3(1.0, 1.0, 1.0), 
+		massPoints.at(1).position, 
+		Vec3(1.0, 1.0, 1.0));
 	DUC->endLine();
 }
 
@@ -59,13 +75,19 @@ void MassSpringSystemSimulator::drawDemo4()
 	std::mt19937 eng;
 	std::uniform_real_distribution<float> randCol(0.0f, 1.0f);
 	for (int i = 0; i < getNumberOfMassPoints(); ++i) {
-		DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(1.5 * randCol(eng), 0.6 * randCol(eng), 1.5 * randCol(eng))); //Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0)
+		DUC->setUpLighting(Vec3(), 
+			0.4 * Vec3(1, 1, 1), 
+			100, Vec3(1.5 * randCol(eng), 
+				0.6 * randCol(eng), 1.5 * randCol(eng)));
 		DUC->drawSphere(massPoints.at(i).position, 0.05f);
 	}
 	
 	for (int i = 0; i < getNumberOfSprings(); ++i) {
 		DUC->beginLine();
-		DUC->drawLine(massPoints.at(springs.at(i).masspoint1).position,  Vec3(1.5 * randCol(eng), 0.6 * randCol(eng), 1.5 * randCol(eng)), massPoints.at(springs.at(i).masspoint2).position, Vec3(1.5 * randCol(eng), 0.6*randCol(eng), 1.5 *randCol(eng)));
+		DUC->drawLine(massPoints.at(springs.at(i).masspoint1).position,  
+			Vec3(1.5 * randCol(eng), 0.6 * randCol(eng), 1.5 * randCol(eng)),
+			massPoints.at(springs.at(i).masspoint2).position,
+			Vec3(1.5 * randCol(eng), 0.6*randCol(eng), 1.5 *randCol(eng)));
 		DUC->endLine();
 	}
 }
@@ -132,6 +154,9 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setExternalForce(Vec3{ 0.0f, 0.0f, 0.0f });
 		setIntegrator(EULER);
 
+		cout << "---- DEMO 2 ----" << endl;
+		cout << "Timestep: " << "0.005" << endl;
+
 		Vec3 p0{ 0., 0., 0. };
 		Vec3 p1{ 0., 2., 0. };
 		Vec3 v0{ -1., 0., 0. };
@@ -153,6 +178,9 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setDampingFactor(0);
 		setExternalForce(Vec3{ 0.0f, 0.0f, 0.0f });
 		setIntegrator(MIDPOINT);
+
+		cout << "---- DEMO 3 ----" << endl;
+		cout << "Timestep: " << "0.005" << endl;
 
 		Vec3 p0{ 0., 0., 0. };
 		Vec3 p1{ 0., 2., 0. };
@@ -360,6 +388,10 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
+	if (m_iTestCase == 1 || m_iTestCase == 2) {
+		timeStep = 0.005;
+	}
+
 	switch (m_iIntegrator) {
 		case EULER: {
 			calculateExplicitEulerStep(timeStep);
