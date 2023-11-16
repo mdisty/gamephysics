@@ -103,7 +103,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 			}
 			else // Stützen (Black)
 			{
-				DUC->drawLine(getPositionOfMassPoint(m_springs[i].MassPoint1), Vec3(0.05f), getPositionOfMassPoint(m_springs[i].MassPoint2), Vec3(0.05f));
+				DUC->drawLine(getPositionOfMassPoint(m_springs[i].MassPoint1), Vec3(0.0f), getPositionOfMassPoint(m_springs[i].MassPoint2), Vec3(0.0f));
 			}
 		}
 		DUC->endLine();
