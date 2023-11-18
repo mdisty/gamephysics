@@ -137,10 +137,33 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		simulateTimestep(0.1);
 
 		cout << "---- DEMO 1 ----" << endl;
-		cout << "Point 0: " << massPoints.at(0).position << endl;
-		cout << "Point 1: " << massPoints.at(1).position << endl;
-		cout << "Velocity 0: " << massPoints.at(0).veloctiy << endl;
-		cout << "Velocity 1: " << massPoints.at(1).veloctiy << endl;
+		cout << "One timeStep (0.1) with Euler:" << endl;
+		cout << "--Point 0: " << massPoints.at(0).position << endl;
+		cout << "--Point 1: " << massPoints.at(1).position << endl;
+		cout << "--Velocity 0: " << massPoints.at(0).veloctiy << endl;
+		cout << "--Velocity 1: " << massPoints.at(1).veloctiy << endl;
+
+		massPoints.clear();
+		springs.clear();
+
+		setMass(10);
+		setStiffness(40);
+		setDampingFactor(0);
+		setExternalForce(Vec3(0.0f, 0.0f, 0.0f));
+		setIntegrator(MIDPOINT);
+
+		ip0 = addMassPoint(p0, v0, false);
+		ip1 = addMassPoint(p1, v1, false);
+
+		addSpring(ip0, ip1, 1.0);
+
+		simulateTimestep(0.1);
+
+		cout << "One timeStep (0.1) with Midpoint:" << endl;
+		cout << "--Point 0: " << massPoints.at(0).position << endl;
+		cout << "--Point 1: " << massPoints.at(1).position << endl;
+		cout << "--Velocity 0: " << massPoints.at(0).veloctiy << endl;
+		cout << "--Velocity 1: " << massPoints.at(1).veloctiy << endl;
 
 		break;
 	}
@@ -203,6 +226,10 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		TwAddVarRO(DUC->g_pTweakBar, "   ", TW_TYPE_STDSTRING, &info3, "");
 		TwAddVarRO(DUC->g_pTweakBar, "    ", TW_TYPE_STDSTRING, &info4, "");
 		TwAddVarRO(DUC->g_pTweakBar, "     ", TW_TYPE_STDSTRING, &info5, "");
+
+		cout << "---- DEMO 4 ----" << endl;
+		cout << "How to interact: " << endl;
+		cout << "Click and drag your mouse to apply" << endl << "external forces to the objects in the scene." << endl;
 
 		massPoints.clear();
 		springs.clear();
