@@ -19,6 +19,10 @@ public:
 		Quat orientation{};
 		Vec3 velocity{ 0.0f, 0.0f, 0.0f };
 		Vec3 angularVelocity{ 0.0f, 0.0f, 0.0f };
+		Mat4 inertiaTensor{ 0.0f };
+
+		vector<tuple<Vec3, Vec3>> forces; // <position, force>
+		Vec3 torque{ 0.0f, 0.0f, 0.0f };
 
 		Rigidbody(Vec3 position, Vec3 size, int mass) : position{ position }, size{ size }, mass{ mass } {};
 	};

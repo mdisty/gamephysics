@@ -71,6 +71,10 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	case 0: {
 		addRigidBody(Vec3{0.0f, 0.0f, 0.0f}, Vec3{1.0f, 0.6f, 0.5f}, 2);
 		setOrientationOf(0, Quat(Vec3{0.0f, 0.0f, 1.0f}, 90));
+		applyForceOnBody(0, Vec3{ 0.3, 0.5, 0.25 }, Vec3{ 1.0f, 1.0f, 0.0f });
+
+		// TODO: Calculate one timestep of 2
+
 		break; 
 	}
 	case 1: break;
@@ -118,19 +122,28 @@ Vec3 RigidBodySystemSimulator::getPositionOfRigidBody(int i)
 
 Vec3 RigidBodySystemSimulator::getLinearVelocityOfRigidBody(int i)
 {
-	// TODO
-	return Vec3();
+	return rigidbodies.at(i).velocity;
 }
 
 Vec3 RigidBodySystemSimulator::getAngularVelocityOfRigidBody(int i)
 {
-	// TODO
-	return Vec3();
+	return rigidbodies.at(i).angularVelocity;
 }
 
 void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 {
-	// TODO
+	// Add position and force as tuple to rigidbody
+	vector<tuple<Vec3, Vec3>> forces = rigidbodies.at(i).forces;
+
+	// Calculate new torque
+	forces.emplace_back(tuple<Vec3, Vec3>{loc, force});
+
+	Vec3 newTorque;
+	for (const auto& force : forces) {
+		 newTorque = cross(get<0>(force), get<1>(force));
+	}
+
+	rigidbodies.at(i).torque = newTorque;
 }
 
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
