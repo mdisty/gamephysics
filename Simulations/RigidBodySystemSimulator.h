@@ -10,6 +10,17 @@ class RigidBodySystemSimulator:public Simulator{
 public:
 	// Construtors
 	RigidBodySystemSimulator();
+
+	// Struct
+	struct Rigidbody {
+		Vec3 position;
+		Vec3 size;
+		int mass;
+		Quat orientation{};
+		Vec3 velocity{ 0.0f,0.0f,0.0f };
+
+		Rigidbody(Vec3 position, Vec3 size, int mass) : position{ position }, size{ size }, mass{ mass } {};
+	};
 	
 	// Functions
 	const char * getTestCasesStr();
@@ -37,8 +48,11 @@ private:
 	// add your RigidBodySystem data members, for e.g.,
 	// RigidBodySystem * m_pRigidBodySystem; 
 	Vec3 m_externalForce;
+	vector<Rigidbody> rigidbodies{};
 
 	// UI Attributes
+	Point2D click;
+	Point2D oldClick;
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
