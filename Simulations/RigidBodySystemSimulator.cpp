@@ -22,16 +22,39 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 
 void RigidBodySystemSimulator::reset()
 {
-	m_mouse.x = m_mouse.y = 0;
-	m_trackmouse.x = m_trackmouse.y = 0;
-	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
+	click = { 0, 0 };
+	oldClick = { 0, 0 };
+	m_mouse = { 0, 0 };
+	m_trackmouse = { 0, 0 };
+	m_oldtrackmouse = { 0, 0 };
+}
+
+void RigidBodySystemSimulator::drawDemo1() {
+	for (const auto& rigidbody : rigidbodies) {
+		DUC->setUpLighting(Vec3(),
+			0.4 * Vec3(1, 1, 1),
+			100,
+			Vec3(237.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0));
+
+		Mat4d scale{};
+		scale.initScaling(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z);
+		Mat4d translation{};
+		translation.initTranslation(rigidbody.position.x, rigidbody.position.y, rigidbody.position.z);
+
+		Mat4 body = scale * rigidbody.orientation.getRotMat() * translation;
+
+		DUC->drawRigidBody(body);
+	}
 }
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	switch (m_iTestCase)
 	{
-	case 0: break;
+	case 0: { 
+		drawDemo1();
+		break;
+	}
 	case 1: break;
 	case 2: break;
 	case 3: break;
@@ -45,7 +68,11 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 
 	switch (m_iTestCase)
 	{
-	case 0: break;
+	case 0: {
+		addRigidBody(Vec3{0.0f, 0.0f, 0.0f}, Vec3{1.0f, 0.6f, 0.5f}, 2);
+		setOrientationOf(0, Quat(Vec3{0.0f, 0.0f, 1.0f}, 90));
+		break; 
+	}
 	case 1: break;
 	case 2: break;
 	case 3: break;

@@ -17,7 +17,8 @@ public:
 		Vec3 size;
 		int mass;
 		Quat orientation{};
-		Vec3 velocity{ 0.0f,0.0f,0.0f };
+		Vec3 velocity{ 0.0f, 0.0f, 0.0f };
+		Vec3 angularVelocity{ 0.0f, 0.0f, 0.0f };
 
 		Rigidbody(Vec3 position, Vec3 size, int mass) : position{ position }, size{ size }, mass{ mass } {};
 	};
@@ -26,6 +27,7 @@ public:
 	const char * getTestCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
+	void drawDemo1();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
