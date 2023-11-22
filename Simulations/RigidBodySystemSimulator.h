@@ -1,6 +1,8 @@
 #ifndef RIGIDBODYSYSTEMSIMULATOR_h
 #define RIGIDBODYSYSTEMSIMULATOR_h
 #include "Simulator.h"
+#include <array>
+
 //add your header for your rigid body system, for e.g.,
 //#include "rigidBodySystem.h" 
 
@@ -16,10 +18,12 @@ public:
 		Vec3 position;
 		Vec3 size;
 		int mass;
-		Quat orientation{};
+		Quat orientation{ 0.0f, 0.0f, 0.0f, 1.0f };
 		Vec3 velocity{ 0.0f, 0.0f, 0.0f };
 		Vec3 angularVelocity{ 0.0f, 0.0f, 0.0f };
-		Mat4 inertiaTensor{ 0.0f };
+		Vec3 angularMomentum{ 0.0f, 0.0f, 0.0f };
+		Mat4 inertiaTensor{ 0.0f }; // Traegheitsmoment
+		Mat4 inertiaTensorZero{ 0.0f };
 
 		vector<tuple<Vec3, Vec3>> forces; // <position, force>
 		Vec3 torque{ 0.0f, 0.0f, 0.0f };
@@ -31,7 +35,7 @@ public:
 	const char * getTestCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
-	void drawDemo1();
+	void drawAllRigidBodies();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
@@ -48,6 +52,11 @@ public:
 	void addRigidBody(Vec3 position, Vec3 size, int mass);
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
+
+	// Physics calculations
+	Mat4 calculateInitialInertiaTensor(int rigidbodyIndex);
+	void updateInertiaTensor(Rigidbody& rigidbody);
+	void calculateTimeStepForRigidbodies(float timeStep);
 
 private:
 	// Attributes
