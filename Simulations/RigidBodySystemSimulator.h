@@ -1,6 +1,7 @@
 #ifndef RIGIDBODYSYSTEMSIMULATOR_h
 #define RIGIDBODYSYSTEMSIMULATOR_h
 #include "Simulator.h"
+#include "collisionDetect.h"
 #include <array>
 
 //add your header for your rigid body system, for e.g.,
@@ -27,6 +28,8 @@ public:
 
 		vector<tuple<Vec3, Vec3>> forces; // <position, force>
 		Vec3 torque{ 0.0f, 0.0f, 0.0f };
+
+		bool operator==(const Rigidbody& b) const;
 
 		Rigidbody(Vec3 position, Vec3 size, int mass) : position{ position }, size{ size }, mass{ mass } {};
 	};
@@ -57,6 +60,7 @@ public:
 	Mat4 calculateInitialInertiaTensor(int rigidbodyIndex);
 	void updateInertiaTensor(Rigidbody& rigidbody);
 	void calculateTimeStepForRigidbodies(float timeStep);
+	void calculateCollision(Rigidbody& rigidbody, Rigidbody& rigidbodyB, float bouncyness);
 
 private:
 	// Attributes
