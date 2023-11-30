@@ -42,12 +42,7 @@ void RigidBodySystemSimulator::drawAllRigidBodies() {
 			100,
 			Vec3(randCol(eng), randCol(eng), randCol(eng)));
 
-		Mat4d scale{};
-		scale.initScaling(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z);
-		Mat4d translation{};
-		translation.initTranslation(rigidbody.position.x, rigidbody.position.y, rigidbody.position.z);
-
-		Mat4 body = scale * rigidbody.orientation.getRotMat() * translation;
+		Mat4 body = toObjectToWordMatrix(rigidbody);
 
 		DUC->drawRigidBody(body);
 	}
@@ -92,8 +87,12 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 
 		calculateTimeStepForRigidbodies(2.0f);
 
+		Vec3 x = Vec3(-0.3f, -0.5f, -0.25f) - getPositionOfRigidBody(0);
+		Vec3 v = getLinearVelocityOfRigidBody(0) + cross(getAngularVelocityOfRigidBody(0), x);
+
 		cout << "Linear Velocity: " << rigidbodies.at(0).velocity << endl;
 		cout << "Angular Velocity: " << rigidbodies.at(0).angularVelocity << endl;
+		cout << "World space velocity at (-0.3, -0.5, -0.25): " << v << endl;
 		break; 
 	}
 	case 1: {
@@ -122,12 +121,12 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		
 		setGravity(-0.5f);
 
-		addRigidBody(Vec3(0.0f, 1.0f, 0.0f), Vec3{ 1.0f, 0.6f, 0.5f }, 2);
+		addRigidBody(Vec3(1.0f, 1.0f, 0.0f), Vec3{ 1.0f, 0.6f, 0.5f }, 2);
 		setOrientationOf(0, Quat(Vec3{ 1.0f, 1.0f, 1.0f }, 30.0f * (M_PI / 180.0f)));
 		applyForceOnBody(0, Vec3{ 1.0f, 1.0f, 0.0f }, Vec3{ 0.0f, -1.0f, 0.0f });
 
 		addRigidBody(Vec3{ 0.0f, -1.0f, 0.0f }, Vec3{ 6.0f, 0.6f, 6.0f  }, 2);
-		rigidbodies.at(1).fixed = true;
+		setFixedOf(1, true);
 		break;
 	}
 	default: break;
@@ -209,6 +208,10 @@ void RigidBodySystemSimulator::setVelocityOf(int i, Vec3 velocity)
 	rigidbodies.at(i).velocity = velocity;
 }
 
+void RigidBodySystemSimulator::setFixedOf(int i, bool fixed) {
+	rigidbodies.at(i).fixed = fixed;
+}
+
 void RigidBodySystemSimulator::setGravity(float g) {
 	gravity = g;
 }
@@ -284,32 +287,28 @@ void RigidBodySystemSimulator::calculateTimeStepForRigidbodies(float timeStep) {
 		// Add gravity
 		rigidbody.forces.push_back(tuple<Vec3, Vec3>(rigidbody.position, Vec3(0.f, gravity, 0.f)));
 
-		// Calculate Forces
-		Vec3 F{ 0.0f, 0.0f, 0.0f };
-		for (const auto& force : rigidbody.forces) {
-			F += get<1>(force);
-		}
-
 		// Calculate new torque
+		Vec3 F{ 0.0f, 0.0f, 0.0f };
 		Vec3 newTorque{ 0.0f, 0.0f, 0.0f };
 		for (const auto& force : rigidbody.forces) {
 			Vec3 relativePosition = get<0>(force) - rigidbody.position;
 
+			F += get<1>(force);
 			newTorque += cross(relativePosition, get<1>(force));
 		}
 		rigidbody.torque = newTorque;
 
 		// Calculate new positions etc.
-		rigidbody.position = rigidbody.position + timeStep * rigidbody.velocity;
+		rigidbody.position += timeStep * rigidbody.velocity;
 
-		rigidbody.velocity = rigidbody.velocity + timeStep * (F / rigidbody.mass);
+		rigidbody.velocity += timeStep * (F / rigidbody.mass);
 
-		Quat angularVelocity{ rigidbody.angularVelocity.x, rigidbody.angularVelocity.y, rigidbody.angularVelocity.z, 0.0f };
+		Quat angularVelocity(rigidbody.angularVelocity.x, rigidbody.angularVelocity.y, rigidbody.angularVelocity.z, 0.0f );
 	
-		rigidbody.orientation = rigidbody.orientation + (timeStep / 2.0f) * angularVelocity * rigidbody.orientation;
-		rigidbody.orientation = rigidbody.orientation.norm() < 2e-8 ? rigidbody.orientation : rigidbody.orientation.unit(); // Normalize? Not sure if this is necessary
+		rigidbody.orientation += (timeStep / 2.0f) * angularVelocity * rigidbody.orientation;
+		rigidbody.orientation = rigidbody.orientation.unit();
 
-		rigidbody.angularMomentum = rigidbody.angularMomentum + timeStep * rigidbody.torque;
+		rigidbody.angularMomentum += timeStep * rigidbody.torque;
 
 		updateInertiaTensor(rigidbody);
 
@@ -338,25 +337,16 @@ void RigidBodySystemSimulator::updateInertiaTensor(Rigidbody& rigidbody) {
 void RigidBodySystemSimulator::calculateCollision(Rigidbody& rigidbodyA, Rigidbody& rigidbodyB, float bouncyness) {
 	if (rigidbodyB == rigidbodyA) return;
 
-	Mat4 scaleA; scaleA.initScaling(rigidbodyA.size.x, rigidbodyA.size.y, rigidbodyA.size.z);
-	Mat4 rotationA = rigidbodyA.orientation.getRotMat();
-	Mat4 translationA; translationA.initTranslation(rigidbodyA.position.x, rigidbodyA.position.y, rigidbodyA.position.z);
+	Mat4 objectA = toObjectToWordMatrix(rigidbodyA);
+	Mat4 objectB = toObjectToWordMatrix(rigidbodyB);
 
-	Mat4 objectA = scaleA * rotationA * translationA;
+	CollisionInfo collision = checkCollisionSAT(objectA, objectB);
 
-	Mat4 scaleB; scaleB.initScaling(rigidbodyB.size.x, rigidbodyB.size.y, rigidbodyB.size.z);
-	Mat4 rotationB = rigidbodyB.orientation.getRotMat();
-	Mat4 translationB; translationB.initTranslation(rigidbodyB.position.x, rigidbodyB.position.y, rigidbodyB.position.z);
+	if (collision.isValid) {
+		Vec3 n = collision.normalWorld;
 
-	Mat4 objectB = scaleB * rotationB * translationB;
-
-	CollisionInfo collisionTest = checkCollisionSAT(objectA, objectB);
-
-	if (collisionTest.isValid) {
-		Vec3 n = collisionTest.normalWorld;
-
-		Vec3 xA = collisionTest.collisionPointWorld - rigidbodyA.position;
-		Vec3 xB = collisionTest.collisionPointWorld - rigidbodyB.position;
+		Vec3 xA = collision.collisionPointWorld - rigidbodyA.position;
+		Vec3 xB = collision.collisionPointWorld - rigidbodyB.position;
 
 		Vec3 vA = rigidbodyA.velocity + cross(rigidbodyA.angularVelocity, xA);
 		Vec3 vB = rigidbodyB.velocity + cross(rigidbodyB.angularVelocity, xB);
@@ -365,23 +355,35 @@ void RigidBodySystemSimulator::calculateCollision(Rigidbody& rigidbodyA, Rigidbo
 		if (dot(relativeVel, n) > 0) return;
 		
 		// Calculate Impule
-		float impulseNumerator = dot((-relativeVel - bouncyness * relativeVel), n);
-
-		float afix = rigidbodyA.fixed ? 0.0f : 1.0f;
-		float bfix = rigidbodyB.fixed ? 0.0f : 1.0f;
-
-		float impulseDenominator = afix * 1.0f / rigidbodyA.mass + bfix * 1.0f / rigidbodyB.mass +
-			dot(afix * (cross(rigidbodyA.inertiaTensor * cross(xA, n), xA) +
-				bfix * cross(rigidbodyB.inertiaTensor * cross(xB, n), xB)), n);
-		float impulse = impulseNumerator / impulseDenominator;
+		float impulse = calculateImpulse(rigidbodyA, rigidbodyB, relativeVel, n, xA, xB, bouncyness);
 
 		// Update velocity, Angular momentum
-		if (!rigidbodyA.fixed) rigidbodyA.velocity = rigidbodyA.velocity + impulse * n / rigidbodyA.mass;
-		if (!rigidbodyB.fixed) rigidbodyB.velocity = rigidbodyB.velocity - impulse * n / rigidbodyB.mass;
+		if (!rigidbodyA.fixed) rigidbodyA.velocity += impulse * n / rigidbodyA.mass;
+		if (!rigidbodyB.fixed) rigidbodyB.velocity -= impulse * n / rigidbodyB.mass;
 
-		if (!rigidbodyA.fixed) rigidbodyA.angularMomentum = rigidbodyA.angularMomentum + cross(xA, n * impulse);
-		if (!rigidbodyB.fixed) rigidbodyB.angularMomentum = rigidbodyB.angularMomentum - cross(xB, n * impulse);
+		if (!rigidbodyA.fixed) rigidbodyA.angularMomentum += cross(xA, n * impulse);
+		if (!rigidbodyB.fixed) rigidbodyB.angularMomentum -= cross(xB, n * impulse);
 	}
+}
+
+Mat4 RigidBodySystemSimulator::toObjectToWordMatrix(const Rigidbody& rigidbody) {
+	Mat4 scale; scale.initScaling(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z);
+	Mat4 rotation = rigidbody.orientation.getRotMat();
+	Mat4 translation; translation.initTranslation(rigidbody.position.x, rigidbody.position.y, rigidbody.position.z);
+
+	return scale * rotation * translation;
+}
+
+const float RigidBodySystemSimulator::calculateImpulse(const Rigidbody& rigidbodyA, const Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness) {
+	float impulseNumerator = dot((-relativeVel - bouncyness * relativeVel), n);
+
+	float aFixed = rigidbodyA.fixed ? 0.0f : 1.0f;
+	float bFixed = rigidbodyB.fixed ? 0.0f : 1.0f;
+
+	float impulseDenominator = aFixed * 1.0f / rigidbodyA.mass + bFixed * 1.0f / rigidbodyB.mass +
+		dot(aFixed * (cross(rigidbodyA.inertiaTensor * cross(xA, n), xA) +
+			bFixed * cross(rigidbodyB.inertiaTensor * cross(xB, n), xB)), n);
+	return impulseNumerator / impulseDenominator;
 }
 
 // Rigidbody class

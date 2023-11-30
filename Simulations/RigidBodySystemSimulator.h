@@ -57,6 +57,7 @@ public:
 	void addRigidBody(Vec3 position, Vec3 size, int mass);
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
+	void setFixedOf(int i, bool fixed);
 	void setGravity(float gravtiy);
 
 	// Physics calculations
@@ -64,6 +65,8 @@ public:
 	void calculateTimeStepForRigidbodies(float timeStep);
 	void updateInertiaTensor(Rigidbody& rigidbody);
 	void calculateCollision(Rigidbody& rigidbody, Rigidbody& rigidbodyB, float bouncyness);
+	Mat4 toObjectToWordMatrix(const Rigidbody& rigidbody);
+	const float calculateImpulse(const Rigidbody& rigidbodyA, const Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness);
 
 private:
 	// Attributes
