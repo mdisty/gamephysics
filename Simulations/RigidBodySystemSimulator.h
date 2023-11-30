@@ -5,7 +5,7 @@
 #include <array>
 
 //add your header for your rigid body system, for e.g.,
-//#include "rigidBodySystem.h" 
+//#include "rigidBodySystem.h"
 
 #define TESTCASEUSEDTORUNTEST 2
 
@@ -18,7 +18,7 @@ public:
 	struct Rigidbody {
 		Vec3 position;
 		Vec3 size;
-		int mass;
+		float mass;
 		Quat orientation{ 0.0f, 0.0f, 0.0f, 1.0f };
 		Vec3 velocity{ 0.0f, 0.0f, 0.0f };
 		Vec3 angularVelocity{ 0.0f, 0.0f, 0.0f };
@@ -29,11 +29,13 @@ public:
 		vector<tuple<Vec3, Vec3>> forces; // <position, force>
 		Vec3 torque{ 0.0f, 0.0f, 0.0f };
 
+		bool fixed{ false };
+
 		bool operator==(const Rigidbody& b) const;
 
-		Rigidbody(Vec3 position, Vec3 size, int mass) : position{ position }, size{ size }, mass{ mass } {};
+		Rigidbody(Vec3 position, Vec3 size, float mass) : position{ position }, size{ size }, mass{ mass } {};
 	};
-	
+
 	// Functions
 	const char * getTestCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
@@ -55,19 +57,21 @@ public:
 	void addRigidBody(Vec3 position, Vec3 size, int mass);
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
+	void setGravity(float gravtiy);
 
 	// Physics calculations
 	Mat4 calculateInitialInertiaTensor(int rigidbodyIndex);
-	void updateInertiaTensor(Rigidbody& rigidbody);
 	void calculateTimeStepForRigidbodies(float timeStep);
+	void updateInertiaTensor(Rigidbody& rigidbody);
 	void calculateCollision(Rigidbody& rigidbody, Rigidbody& rigidbodyB, float bouncyness);
 
 private:
 	// Attributes
 	// add your RigidBodySystem data members, for e.g.,
-	// RigidBodySystem * m_pRigidBodySystem; 
+	// RigidBodySystem * m_pRigidBodySystem;
 	Vec3 m_externalForce;
 	vector<Rigidbody> rigidbodies{};
+	float gravity;
 
 	// UI Attributes
 	Point2D click;
