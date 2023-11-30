@@ -75,6 +75,7 @@ private:
 	Vec3 m_externalForce;
 	vector<Rigidbody> rigidbodies{};
 	float gravity;
+	float speedFactor;
 
 	// UI Attributes
 	Point2D click;

@@ -8,7 +8,9 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 	m_mouse = { 0, 0 };
 	m_trackmouse = { 0, 0 };
 	m_oldtrackmouse = { 0, 0 };
+	m_externalForce = { 0.0f , 0.0f, 0.0f };
 	gravity = 0.0f;
+	speedFactor = 1.0f;
 }
 
 const char* RigidBodySystemSimulator::getTestCasesStr()
@@ -30,7 +32,9 @@ void RigidBodySystemSimulator::reset()
 	m_mouse = { 0, 0 };
 	m_trackmouse = { 0, 0 };
 	m_oldtrackmouse = { 0, 0 };
+	m_externalForce = { 0.0f , 0.0f, 0.0f };
 	gravity = 0.0f;
+	speedFactor = 1.0f;
 }
 
 void RigidBodySystemSimulator::drawAllRigidBodies() {
@@ -79,6 +83,8 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	switch (m_iTestCase)
 	{
 	case 0: {
+		cout << "----- Demo 1 -----" << endl;
+
 		reset();
 
 		addRigidBody(Vec3{0.0f, 0.0f, 0.0f}, Vec3{1.0f, 0.6f, 0.5f}, 2);
@@ -96,6 +102,8 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		break; 
 	}
 	case 1: {
+		cout << "----- Demo 2 -----" << endl;
+
 		reset();
 
 		addRigidBody(Vec3{ 0.0f, 0.0f, 0.0f }, Vec3{ 1.0f, 0.6f, 0.5f }, 2);
@@ -105,6 +113,10 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		break; 
 	}
 	case 2: {
+		cout << "----- Demo 3 -----" << endl;
+
+		TwAddVarRW(DUC->g_pTweakBar, "Speed Factor", TW_TYPE_FLOAT, &speedFactor, "step=0.1 min=0.0001");
+
 		reset();
 
 		addRigidBody(Vec3{ 1.0f, 0.0f, 0.0f }, Vec3{ 1.0f, 0.6f, 0.5f }, 2);
@@ -117,6 +129,11 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		break; 
 	}
 	case 3: {
+		cout << "----- Demo 4 -----" << endl;
+
+		TwAddVarRW(DUC->g_pTweakBar, "Speed Factor", TW_TYPE_FLOAT, &speedFactor, "step=0.1 min=0.0001");
+		TwAddVarRW(DUC->g_pTweakBar, "Gravity", TW_TYPE_FLOAT, &gravity, "step=0.1");
+
 		reset();
 		
 		setGravity(-0.5f);
@@ -135,13 +152,40 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
-	// TODO: Calculate external forces
+	// Rotate direction depending on camera view point
+	Vec3 defaultViewDirectinon{ 0.0f, 0.0f, 1.0f };
+	Vec3 viewDirection{ DUC->g_camera.GetLookAtPt() - DUC->g_camera.GetEyePt() };
+	normalize(viewDirection);
+
+	float theta = acos(dot(defaultViewDirectinon, viewDirection) / (norm(defaultViewDirectinon) * norm(viewDirection)));
+
+	theta = Vec3(DUC->g_camera.GetEyePt()).x < 0 ? theta : -theta;
+
+	float cosTheta{ cos(theta) };
+	float sinTheta{ sin(theta) };
+
+	if (DUC->g_camera.IsMouseLButtonDown()) {
+		Vec3 direction = Vec3(m_trackmouse.x - m_oldtrackmouse.x, m_oldtrackmouse.y - m_trackmouse.y, 0.0f);
+
+		float x = cosTheta * direction.x + sinTheta * direction.z;
+		float y = direction.y;
+		float z = -sinTheta * direction.x + cosTheta * direction.z;
+
+		Vec3 rotDirection{ x,y,z };
+		normalize(rotDirection);
+
+		m_externalForce = Vec3(0.0f, gravity, 0.0f) + 0.1f * rotDirection;
+	}
+	else {
+		m_externalForce = Vec3(0.0f, gravity, 0.0f);
+	}
 }
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
 	if (m_iTestCase == 0) return;
 
+	timeStep *= speedFactor;
 	calculateTimeStepForRigidbodies(timeStep);
 }
 
@@ -285,7 +329,7 @@ void RigidBodySystemSimulator::calculateTimeStepForRigidbodies(float timeStep) {
 		if (rigidbody.fixed) continue;
 
 		// Add gravity
-		rigidbody.forces.push_back(tuple<Vec3, Vec3>(rigidbody.position, Vec3(0.f, gravity, 0.f)));
+		rigidbody.forces.push_back(tuple<Vec3, Vec3>(rigidbody.position, m_externalForce));
 
 		// Calculate new torque
 		Vec3 F{ 0.0f, 0.0f, 0.0f };
@@ -300,11 +344,9 @@ void RigidBodySystemSimulator::calculateTimeStepForRigidbodies(float timeStep) {
 
 		// Calculate new positions etc.
 		rigidbody.position += timeStep * rigidbody.velocity;
-
 		rigidbody.velocity += timeStep * (F / rigidbody.mass);
 
 		Quat angularVelocity(rigidbody.angularVelocity.x, rigidbody.angularVelocity.y, rigidbody.angularVelocity.z, 0.0f );
-	
 		rigidbody.orientation += (timeStep / 2.0f) * angularVelocity * rigidbody.orientation;
 		rigidbody.orientation = rigidbody.orientation.unit();
 
