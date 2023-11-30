@@ -31,7 +31,7 @@ public:
 		bool isFixed{ false };
 		//bool operator==(const RigidBody& b) const;
 
-		RigidBody(Vec3 position, Vec3 size, float mass);
+		RigidBody(Vec3 position, Vec3 size, float mass) : position{ position }, size{ size }, mass{ mass } {};
 	};
 
 	struct RigidBodySystem {
@@ -66,6 +66,7 @@ public:
 	void integrateOrientation(Vec3 w, Quat orientation, float timestep);
 	void calculateAngularMomentum(Vec3 L, float timestep, Vec3 torque);
 	void updateIntertiaTensor(Mat4 rot, Mat4 intertiaTensor);
+	void eulerStep(float timestep);
 
 private:
 	// Attributes

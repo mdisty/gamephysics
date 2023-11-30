@@ -46,7 +46,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 	case 0: {
 		cout << ".------------.\n | Demo 1 | \n '------------' \n";
-		//cout << "| Text Fancy |";
+		//cout << "| Demo 1   |";
 		//cout << "'------------'";
 
 
@@ -63,7 +63,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 
 	default: {
 		cout << ".------------.\n | Default | \n '------------' \n";
-		//cout << "| Text Fancy |";
+		//cout << "| Défault |";
 		//cout << "'------------'";
 		break;
 	}
@@ -81,13 +81,13 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 	switch (m_iTestCase) {
 	case 0: timeStep = 2; break;
 	case 1: timeStep = 0.01; 
-		explicitEulerIntegration(timeStep);
+		eulerStep(timeStep);
 		break;
 	case 2: 
-		explicitEulerIntegration(timeStep);
+		eulerStep(timeStep);
 		break;
 	case 3: 
-		explicitEulerIntegration(timeStep);
+		eulerStep(timeStep);
 		break;
 	}
 
@@ -136,7 +136,7 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
 {
-	RigidBody rigidbody{ position, size, mass, Vec3(0.), Vec3(0.), Vec3(0.), Quat(0.)};
+	RigidBody rigidbody{ position, size, mass };
 	rigidbodies.emplace_back(rigidbody);
 }
 
@@ -149,17 +149,3 @@ void RigidBodySystemSimulator::setVelocityOf(int i, Vec3 velocity)
 {
 	rigidbodies.at(i).velocity = velocity;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
