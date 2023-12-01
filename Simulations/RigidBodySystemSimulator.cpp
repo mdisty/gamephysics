@@ -262,53 +262,6 @@ void RigidBodySystemSimulator::setGravity(float g) {
 
 Mat4 RigidBodySystemSimulator::calculateInitialInertiaTensor(int rigidbodyIndex)
 {
-	// Formula from the tutorial
-	/*Rigidbody body{rigidbodies.at(rigidbodyIndex)};
-
-	array<float, 3> p1{ - body.size.x / 2.0f, + body.size.y / 2.0f, + body.size.z / 2.0f };
-	array<float, 3> p2{ + body.size.x / 2.0f, + body.size.y / 2.0f, + body.size.z / 2.0f };
-	array<float, 3> p3{ - body.size.x / 2.0f, - body.size.y / 2.0f, + body.size.z / 2.0f };
-	array<float, 3> p4{ + body.size.x / 2.0f, - body.size.y / 2.0f, + body.size.z / 2.0f };
-	array<float, 3> p5{ - body.size.x / 2.0f, + body.size.y / 2.0f, - body.size.z / 2.0f };
-	array<float, 3> p6{ + body.size.x / 2.0f, + body.size.y / 2.0f, - body.size.z / 2.0f };
-	array<float, 3> p7{ - body.size.x / 2.0f, - body.size.y / 2.0f, - body.size.z / 2.0f };
-	array<float, 3> p8{ + body.size.x / 2.0f, - body.size.y / 2.0f, - body.size.z / 2.0f };
-
-	array<array<float, 3>, 8> points{ p1, p2, p3, p4, p5, p6, p7, p8 };
-	array<float, 9> components{};
-
-	int i = 0;
-
-	// C_j,k = sum_n(m_n * x_n,j * x_n,k)
-	for (int j = 0; j < 3; ++j) {
-		for (int k = 0; k < 3; ++k) {
-			float c = 0;
-			for (int n = 0; n < 8; ++n) {
-				c += points.at(n).at(j) * points.at(n).at(k);
-			}
-			c *= body.mass / 24.0f; // Why the fuck 24?!
-			components.at(i) = c;
-			++i;
-		}
-	}
-
-	float traceC = components.at(0) + components.at(4) + components.at(8);
-
-	Mat4 C{components.at(0), components.at(1), components.at(2), 0.0f,
-		   components.at(3), components.at(4), components.at(5), 0.0f,
-		   components.at(6), components.at(7), components.at(8), 0.0f,
-		   0.0f			   , 0.0f			 , 0.0f			   , 1.0f };
-
-	Mat4 id_trace{};
-	id_trace.initScaling(traceC, traceC, traceC);
-
-	Mat4 I0 = id_trace - C;
-	I0.value[3][3] = 1.0f;
-
-	Mat4 invI0 = I0.inverse();
-
-	return invI0;*/
-
 	// Formula from wikipedia
 	Rigidbody body{ rigidbodies.at(rigidbodyIndex) };
 
@@ -416,15 +369,15 @@ Mat4 RigidBodySystemSimulator::toObjectToWordMatrix(const Rigidbody& rigidbody) 
 	return scale * rotation * translation;
 }
 
-const float RigidBodySystemSimulator::calculateImpulse(const Rigidbody& rigidbodyA, const Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness) {
+const float RigidBodySystemSimulator::calculateImpulse(Rigidbody& rigidbodyA, Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness) {
 	float impulseNumerator = dot((-relativeVel - bouncyness * relativeVel), n);
 
 	float aFixed = rigidbodyA.fixed ? 0.0f : 1.0f;
 	float bFixed = rigidbodyB.fixed ? 0.0f : 1.0f;
 
 	float impulseDenominator = aFixed * 1.0f / rigidbodyA.mass + bFixed * 1.0f / rigidbodyB.mass +
-		dot(aFixed * (cross(rigidbodyA.inertiaTensor * cross(xA, n), xA) +
-			bFixed * cross(rigidbodyB.inertiaTensor * cross(xB, n), xB)), n);
+		dot(aFixed * cross(rigidbodyA.inertiaTensor * cross(xA, n), xA) +
+			bFixed * cross(rigidbodyB.inertiaTensor * cross(xB, n), xB), n);
 	return impulseNumerator / impulseDenominator;
 }
 
