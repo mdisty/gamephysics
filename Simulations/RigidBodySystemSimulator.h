@@ -71,5 +71,9 @@ private:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+	bool m_drawingForce;
+	bool m_forceReady;
+	Vec3 m_externalForceVectorStart;
+	Vec3 m_externalForceVectorEnd;
 	};
 #endif
