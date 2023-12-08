@@ -16,26 +16,21 @@ public:
 	struct RigidBody {
 		Vec3 position;
 		Vec3 size;
-		float mass;
+		int mass;
 		Vec3 velocity;
 		Vec3 angularVel;
 		Vec3 linearVel;
 		Vec3 angularMomentum;
 		Quat orientation;
-
-		Mat4f InertiaTensor;
-		Mat4f interiaTensorInit;
-		vector<tuple<Vec3, Vec3>> forces; // pos, force
+		Mat4 inverseInertia; //since we mutiply with getRotMat() (for orientation) -> Mat4d
+		Vec3 loc;
+		Vec3 force;
 		Vec3 torque;
 
 		bool isFixed{ false };
 		//bool operator==(const RigidBody& b) const;
 
-		RigidBody(Vec3 position, Vec3 size, float mass) : position{ position }, size{ size }, mass{ mass } {};
-	};
-
-	struct RigidBodySystem {
-
+		RigidBody(Vec3 position, Vec3 size, int mass) : position{ position }, size{ size }, mass{ mass } {};
 	};
 	
 	// Functions
@@ -61,13 +56,7 @@ public:
 
 	// TODO name
 	void setExternalForce(Vec3 force);
-	Vec3 calculateForces(int pointIndex);
-	void calculateTorque(Vec3 pos, Vec3 force, int i);
-	void integrateOrientation(Vec3 w, Quat orientation, float timestep);
-	void calculateAngularMomentum(Vec3 L, float timestep, Vec3 torque);
-	void updateIntertiaTensor(Mat4 rot, Mat4 intertiaTensor);
-	void eulerStep(float timestep);
-
+	
 private:
 	// Attributes
 	// add your RigidBodySystem data members, for e.g.,
