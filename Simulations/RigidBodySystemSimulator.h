@@ -3,6 +3,7 @@
 #include "Simulator.h"
 #include "collisionDetect.h"
 #include <array>
+#include <sstream>
 
 //add your header for your rigid body system, for e.g.,
 //#include "rigidBodySystem.h"
@@ -27,7 +28,6 @@ public:
 		Mat4 inertiaTensorZero{ 0.0f };
 
 		vector<tuple<Vec3, Vec3>> forces{}; // <position, force>
-		Vec3 torque{ 0.0f, 0.0f, 0.0f };
 
 		bool fixed{ false };
 
@@ -66,7 +66,7 @@ public:
 	void updateInertiaTensor(Rigidbody& rigidbody);
 	void calculateCollision(Rigidbody& rigidbody, Rigidbody& rigidbodyB, float bouncyness);
 	Mat4 toObjectToWordMatrix(const Rigidbody& rigidbody);
-	const float calculateImpulse(Rigidbody& rigidbodyA, Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness);
+	float calculateImpulse(Rigidbody& rigidbodyA, Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness);
 
 private:
 	// Attributes
@@ -75,7 +75,9 @@ private:
 	Vec3 m_externalForce;
 	vector<Rigidbody> rigidbodies{};
 	float gravity;
-	float speedFactor;
+	float forceFactor;
+	int32_t selectedBox;
+	bool selectAll;
 
 	// UI Attributes
 	Point2D click;

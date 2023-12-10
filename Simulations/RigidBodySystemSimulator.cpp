@@ -10,7 +10,9 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 	m_oldtrackmouse = { 0, 0 };
 	m_externalForce = { 0.0f , 0.0f, 0.0f };
 	gravity = 0.0f;
-	speedFactor = 1.0f;
+	forceFactor = 1.0f;
+	selectedBox = 0;
+	selectAll = true;
 }
 
 const char* RigidBodySystemSimulator::getTestCasesStr()
@@ -34,22 +36,47 @@ void RigidBodySystemSimulator::reset()
 	m_oldtrackmouse = { 0, 0 };
 	m_externalForce = { 0.0f , 0.0f, 0.0f };
 	gravity = 0.0f;
-	speedFactor = 1.0f;
+	selectedBox = 0;
 }
 
 void RigidBodySystemSimulator::drawAllRigidBodies() {
-	std::mt19937 eng;
-	std::uniform_real_distribution<float> randCol(0.0f, 1.0f);
+
 	for (const auto& rigidbody : rigidbodies) {
-		DUC->setUpLighting(Vec3(),
-			0.4 * Vec3(1, 1, 1),
-			100,
-			Vec3(randCol(eng), randCol(eng), randCol(eng)));
+
+		Vec3 white{ 1.0f, 1.0f, 1.0f };
+		Vec3 lightBlue{ 92.f / 255.f, 190.f / 255.f, 255.f / 255.f };
+		Vec3 purple{ 158.f / 255.f, 52.f / 255.f, 235.f / 255.f };
+
+		if (rigidbody.fixed) {
+			DUC->setUpLighting(Vec3(),
+				0.4 * Vec3(1, 1, 1),
+				100,
+				white);
+		}
+		else if (selectAll) {
+			DUC->setUpLighting(Vec3(),
+				0.4 * Vec3(1, 1, 1),
+				100,
+				lightBlue);
+		}
+		else if (rigidbody == rigidbodies.at(selectedBox)) {
+			DUC->setUpLighting(Vec3(),
+				0.4 * Vec3(1, 1, 1),
+				100,
+				lightBlue);
+		}
+		else {
+			DUC->setUpLighting(Vec3(),
+				0.4 * Vec3(1, 1, 1),
+				100,
+				purple);
+		}
 
 		Mat4 body = toObjectToWordMatrix(rigidbody);
 
 		DUC->drawRigidBody(body);
 	}
+
 }
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
@@ -115,8 +142,6 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	case 2: {
 		cout << "----- Demo 3 -----" << endl;
 
-		TwAddVarRW(DUC->g_pTweakBar, "Speed Factor", TW_TYPE_FLOAT, &speedFactor, "step=0.1 min=0.0001");
-
 		reset();
 
 		addRigidBody(Vec3{ 1.0f, 0.0f, 0.0f }, Vec3{ 1.0f, 0.6f, 0.5f }, 2);
@@ -130,28 +155,67 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	}
 	case 3: {
 		cout << "----- Demo 4 -----" << endl;
-
-		TwAddVarRW(DUC->g_pTweakBar, "Speed Factor", TW_TYPE_FLOAT, &speedFactor, "step=0.1 min=0.0001");
-		TwAddVarRW(DUC->g_pTweakBar, "Gravity", TW_TYPE_FLOAT, &gravity, "step=0.1");
+		cout << "How to interact: " << endl;
+		cout << "Click and drag your mouse to apply" << endl
+			<< "external forces to the objects in the scene." << endl
+			<< "Select all boxes or a single box in the side panel to apply forces." << endl
+			<< "Gravity affects all boxes that are not fixed." << endl << endl
+			<< "Blue box: selected" << endl
+			<< "Purple box: not selected" << endl
+			<< "White box: fixed position" << endl;
 
 		reset();
-		
-		setGravity(-1.0f);
 
-		addRigidBody(Vec3(0.0f, 4.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
+		TwAddVarRW(DUC->g_pTweakBar, "Force Factor", TW_TYPE_FLOAT, &forceFactor, "step=0.1 min=0.0001");
+		TwAddVarRW(DUC->g_pTweakBar, "Gravity", TW_TYPE_FLOAT, &gravity, "step=0.1");
+		TwAddVarRW(DUC->g_pTweakBar, "Selected Box", TW_TYPE_INT32, &selectedBox, "step=1 min=0 max=5");
+		TwAddVarRW(DUC->g_pTweakBar, "Selected All", TW_TYPE_BOOLCPP, &selectAll, "");
+
+		setGravity(0.0f);
+
+		addRigidBody(Vec3(0.0f, 7.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
 		setOrientationOf(0, Quat(Vec3{ 1.0f, 1.0f, 1.0f }, -30.0f * (M_PI / 180.0f)));
-		addRigidBody(Vec3(0.0f, 3.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
+		addRigidBody(Vec3(0.0f, 6.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
 		setOrientationOf(1, Quat(Vec3{ 1.0f, 1.0f, 1.0f }, -30.0f * (M_PI / 180.0f)));
-		addRigidBody(Vec3(0.0f, 2.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
+		addRigidBody(Vec3(0.0f, 5.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
 		setOrientationOf(2, Quat(Vec3{ 1.0f, 1.0f, 1.0f }, -30.0f * (M_PI / 180.0f)));
-
-		addRigidBody(Vec3(0.0f, 1.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
+		addRigidBody(Vec3(0.0f, 4.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
 		setOrientationOf(3, Quat(Vec3{ 1.0f, 1.0f, 1.0f }, 30.0f * (M_PI / 180.0f)));
-		//applyForceOnBody(0, Vec3{ 1.0f, 1.0f, 0.0f }, Vec3{ 0.0f, -1.0f, 0.0f });
-		//setFixedOf(3, true);
 
-		addRigidBody(Vec3{ 0.0f, -1.0f, 0.0f }, Vec3{ 6.0f, 0.6f, 6.0f  }, 2000);
-		setFixedOf(4, true);
+		addRigidBody(Vec3(-3.0f, 2.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
+		setOrientationOf(4, Quat(Vec3{ 1.0f, 1.0f, 1.0f }, 30.0f * (M_PI / 180.0f)));
+		applyForceOnBody(4, Vec3(-3.0f, 2.0f, 0.0f), Vec3(2000.0f, 0.0f, 0.0f));
+		addRigidBody(Vec3(3.0f, 2.0f, 0.0f), Vec3{ 0.5f, 0.5f, 0.5f }, 2);
+		setOrientationOf(5, Quat(Vec3{ 1.0f, 1.0f, 1.0f }, 30.0f * (M_PI / 180.0f)));
+		applyForceOnBody(5, Vec3(3.0f, 2.0f, 0.0f), Vec3(-2000.0f, 0.0f, 0.0f));
+
+		addRigidBody(Vec3{ 0.0f, 3.0f, 0.0f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(6, true);
+
+		addRigidBody(Vec3{ 0.5f, 2.0f, 0.5f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(7, true);
+
+		addRigidBody(Vec3{ -0.5f, 2.0f, -0.5f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(8, true);
+
+		addRigidBody(Vec3{ -0.5f, 2.0f, 0.5f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(9, true);
+
+		addRigidBody(Vec3{ 0.5f, 2.0f, -0.5f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(10, true);
+
+		addRigidBody(Vec3{ 1.0f, 1.0f, 1.0f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(11, true);
+
+		addRigidBody(Vec3{ -1.0f, 1.0f, -1.0f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(12, true);
+
+		addRigidBody(Vec3{ -1.0f, 1.0f, 1.0f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(13, true);
+
+		addRigidBody(Vec3{ 1.0f, 1.0f, -1.0f }, Vec3{ 0.5f, 0.5f, 1.0f }, 2);
+		setFixedOf(14, true);
+
 		break;
 	}
 	default: break;
@@ -160,6 +224,8 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
+	if (m_iTestCase != 3) return;
+
 	// Rotate direction depending on camera view point
 	Vec3 defaultViewDirectinon{0.0f, 0.0f, 1.0f};
 	Vec3 viewDirection{ DUC->g_camera.GetLookAtPt() - DUC->g_camera.GetEyePt() };
@@ -183,7 +249,7 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 		Vec3 rotDirection{ x,y,z };
 		normalize(rotDirection);
 
-		if(m_iTestCase == 3) m_externalForce = Vec3(0.0f, gravity, 0.0f) + 15.0f * rotDirection;
+		m_externalForce = Vec3(0.0f, gravity, 0.0f) + forceFactor * rotDirection;
 	}
 	else {
 		m_externalForce = Vec3(0.0f, gravity, 0.0f);
@@ -194,7 +260,6 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
 	if (m_iTestCase == 0) return;
 
-	timeStep *= speedFactor;
 	calculateTimeStepForRigidbodies(timeStep);
 }
 
@@ -279,6 +344,7 @@ Mat4 RigidBodySystemSimulator::calculateInitialInertiaTensor(int rigidbodyIndex)
 	components.at(0) = 1.0f / 12.0f * body.mass * (body.size.y * body.size.y + body.size.z * body.size.z);
 	components.at(1) = 1.0f / 12.0f * body.mass * (body.size.x * body.size.x + body.size.z * body.size.z);
 	components.at(2) = 1.0f / 12.0f * body.mass * (body.size.x * body.size.x + body.size.y * body.size.y);
+
 	Mat4 I{ components.at(0), 0.0f			  , 0.0f			, 0.0f,
 			0.0f			, components.at(1), 0.0f			, 0.0f,
 			0.0f			, 0.0f			  , components.at(2), 0.0f,
@@ -291,9 +357,17 @@ void RigidBodySystemSimulator::calculateTimeStepForRigidbodies(float timeStep) {
 	for (auto& rigidbody : rigidbodies) {
 		if (rigidbody.fixed) continue;
 
-		// Add gravity
-		rigidbody.forces.push_back(tuple<Vec3, Vec3>(rigidbody.position, m_externalForce));
-
+		// Add external forces
+		if (selectAll) {
+			rigidbody.forces.push_back(tuple<Vec3, Vec3>(rigidbody.position, m_externalForce));
+		}
+		else if (rigidbody == rigidbodies.at(selectedBox)) {
+			rigidbody.forces.push_back(tuple<Vec3, Vec3>(rigidbody.position, m_externalForce));
+		}
+		else {
+			rigidbody.forces.push_back(tuple<Vec3, Vec3>(rigidbody.position, Vec3(0.0f, gravity, 0.0f)));
+		}
+		
 		// Calculate new torque
 		Vec3 F{ 0.0f, 0.0f, 0.0f };
 		Vec3 newTorque{ 0.0f, 0.0f, 0.0f };
@@ -303,17 +377,17 @@ void RigidBodySystemSimulator::calculateTimeStepForRigidbodies(float timeStep) {
 			F += get<1>(force);
 			newTorque += cross(relativePosition, get<1>(force));
 		}
-		rigidbody.torque = newTorque;
+		newTorque;
 
 		// Calculate new positions etc.
 		rigidbody.position += timeStep * rigidbody.velocity;
 		rigidbody.velocity += timeStep * (F / rigidbody.mass);
 
-		Quat angularVelocity(rigidbody.angularVelocity.x, rigidbody.angularVelocity.y, rigidbody.angularVelocity.z, 0.0f );
-		rigidbody.orientation += (angularVelocity * rigidbody.orientation) * (timeStep / 2.0f);
+		Quat angularVelocity(rigidbody.angularVelocity.x, rigidbody.angularVelocity.y, rigidbody.angularVelocity.z, 0.0f);
+		rigidbody.orientation += timeStep / 2.0f * angularVelocity * rigidbody.orientation;
 		rigidbody.orientation = rigidbody.orientation.unit();
 
-		rigidbody.angularMomentum += timeStep * rigidbody.torque;
+		rigidbody.angularMomentum += timeStep * newTorque;
 
 		updateInertiaTensor(rigidbody);
 
@@ -321,11 +395,11 @@ void RigidBodySystemSimulator::calculateTimeStepForRigidbodies(float timeStep) {
 
 		// Clear forces and torque
 		rigidbody.forces.clear();
-		rigidbody.torque = Vec3{ 0.0f, 0.0f, 0.0f };
 	}
 
 	for (int i = 0; i < rigidbodies.size(); ++i) {
 		for (int k = i + 1; k < rigidbodies.size(); ++k) {
+			if (rigidbodies.at(i).fixed && rigidbodies.at(k).fixed) continue;
 			calculateCollision(rigidbodies.at(i), rigidbodies.at(k), 0.0f);
 		}
 	}
@@ -353,15 +427,15 @@ void RigidBodySystemSimulator::calculateCollision(Rigidbody& rigidbodyA, Rigidbo
 		Vec3 xA = collision.collisionPointWorld - rigidbodyA.position;
 		Vec3 xB = collision.collisionPointWorld - rigidbodyB.position;
 
-		Vec3 vA = rigidbodyA.velocity + cross(xA, rigidbodyA.angularVelocity);
-		Vec3 vB = rigidbodyB.velocity + cross(xB, rigidbodyB.angularVelocity);
+		Vec3 vA = rigidbodyA.velocity + cross(rigidbodyA.angularVelocity, xA);
+		Vec3 vB = rigidbodyB.velocity + cross(rigidbodyB.angularVelocity, xB);
 
 		Vec3 relativeVel = vA - vB;
 		if (dot(relativeVel, n) > 0) return;
 		
 		// Calculate Impule
 		float impulse = calculateImpulse(rigidbodyA, rigidbodyB, relativeVel, n, xA, xB, bouncyness);
-
+		
 		// Update velocity, Angular momentum
 		if (!rigidbodyA.fixed) rigidbodyA.velocity += impulse * n / rigidbodyA.mass;
 		if (!rigidbodyB.fixed) rigidbodyB.velocity -= impulse * n / rigidbodyB.mass;
@@ -379,8 +453,8 @@ Mat4 RigidBodySystemSimulator::toObjectToWordMatrix(const Rigidbody& rigidbody) 
 	return scale * rotation * translation;
 }
 
-const float RigidBodySystemSimulator::calculateImpulse(Rigidbody& rigidbodyA, Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness) {
-	float impulseNumerator = -1.0f * (1.0f + bouncyness) * dot( relativeVel, n);
+float RigidBodySystemSimulator::calculateImpulse(Rigidbody& rigidbodyA, Rigidbody& rigidbodyB, const Vec3& relativeVel, const Vec3& n, const Vec3& xA, const Vec3& xB, float bouncyness) {
+	float impulseNumerator = -1.0f * (1.0f + bouncyness) * dot(relativeVel, n);
 
 	float aFixed = rigidbodyA.fixed ? 0.0f : 1.0f;
 	float bFixed = rigidbodyB.fixed ? 0.0f : 1.0f;
