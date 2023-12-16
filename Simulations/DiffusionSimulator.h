@@ -5,6 +5,7 @@
 #include "vectorbase.h"
 
 #include <vector>
+#include <algorithm>
 
 class Grid {
 public:
@@ -18,8 +19,12 @@ public:
 
 	int32_t getWidth() const;
 	int32_t getHeight() const;
+	
+	float getMin() const;
+	float getMax() const;
 
 	void reset(int32_t w, int32_t h, float value);
+	void resetRandom(int32_t w, int32_t h, float min, float max);
 private:
 	std::vector<std::vector<float>> temperaturGrid_{};
 	int32_t w_;
