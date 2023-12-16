@@ -9,6 +9,8 @@ DiffusionSimulator::DiffusionSimulator()
 	m_vfMovableObjectPos = Vec3();
 	m_vfMovableObjectFinalPos = Vec3();
 	m_vfRotate = Vec3();
+
+	T = Grid(16, 16, 0.1f);
 	// rest to be implemented
 }
 
@@ -16,11 +18,11 @@ const char * DiffusionSimulator::getTestCasesStr(){
 	return "Explicit_solver, Implicit_solver";
 }
 
-void DiffusionSimulator::reset(){
-		m_mouse.x = m_mouse.y = 0;
-		m_trackmouse.x = m_trackmouse.y = 0;
-		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
-
+void DiffusionSimulator::reset() {
+	m_mouse.x = m_mouse.y = 0;
+	m_trackmouse.x = m_trackmouse.y = 0;
+	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
+	T.reset(16, 16, 0.5);
 }
 
 void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
@@ -40,7 +42,18 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	switch (m_iTestCase)
 	{
 	case 0:
+		reset();
+
 		cout << "Explicit solver!\n";
+
+		T.setValue(8, 8, 1.0f);
+		for (const auto& v : T.getGrid()) {
+			for (const auto& c : v) {
+				cout << c << " ";
+			}
+			cout << endl;
+		}
+
 		break;
 	case 1:
 		cout << "Implicit solver!\n";
@@ -52,7 +65,22 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 }
 
 void DiffusionSimulator::diffuseTemperatureExplicit() {
-// to be implemented
+	float dt = 0.001f;
+	float dx = 1.0f;
+	float dy = 1.0f;
+	float alpha = 0.5f;
+	float lamda = alpha * dt / (4.0f * dx * dy);
+
+	Grid newT = Grid(T.getWidth(), T.getHeight(), 0.1f);
+
+	for (size_t i = 1; i < T.getWidth() - 1; ++i) {
+		for (size_t j = 1; j < T.getHeight() - 1; ++j) {
+			float newValue = T.getValue(i, j) + lamda * (T.getValue(i + 1, j + 1) - T.getValue(i - 1, j + 1) - T.getValue(i + 1, j - 1) + T.getValue(i - 1, j - 1));
+			newT.setValue(i, j, newValue);
+		}
+	}
+
+	T = newT;
 }
 
 
@@ -99,6 +127,7 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 	case 0:
 		// feel free to change the signature of this function
 		diffuseTemperatureExplicit();
+
 		break;
 	case 1:
 		// feel free to change the signature of this function
@@ -111,6 +140,14 @@ void DiffusionSimulator::drawObjects()
 {
 	// to be implemented
 	//visualization
+	auto& grid = T.getGrid();
+
+	for (size_t x = 0; x < T.getWidth(); ++x) {
+		for (size_t y = 0; y < T.getHeight(); ++y) {
+			DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, 0.6 * Vec3(T.getValue(x, y), 0.0f, 0.0f));
+			DUC->drawSphere(Vec3(x, y, 0.0f), Vec3(1.0f, 1.0f, 1.0f));
+		}
+	}
 }
 
 
@@ -131,4 +168,45 @@ void DiffusionSimulator::onMouse(int x, int y)
 	m_oldtrackmouse.y = y;
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+}
+
+// Grid class
+
+Grid::Grid() : w_{ 0 }, h_{ 0 } {};
+
+Grid::Grid(int32_t w, int32_t h, float value) : w_{ w }, h_{ h } {
+	temperaturGrid_.resize(w, std::vector<float>(h, value));
+};
+
+std::vector<std::vector<float>>& Grid::getGrid()
+{
+	return temperaturGrid_;
+}
+
+float Grid::getValue(size_t x, size_t y) const
+{
+	return temperaturGrid_.at(x).at(y);
+}
+
+void Grid::setValue(size_t x, size_t y, float v)
+{
+	temperaturGrid_.at(x).at(y) = v;
+}
+
+int32_t Grid::getWidth() const
+{
+	return w_;
+}
+
+int32_t Grid::getHeight() const
+{
+	return h_;
+}
+
+void Grid::reset(int32_t w, int32_t h, float value)
+{
+	w_ = w;
+	h_ = h;
+	temperaturGrid_.clear();
+	temperaturGrid_.resize(w, std::vector<float>(h, value));
 }
