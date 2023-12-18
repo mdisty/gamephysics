@@ -10,23 +10,26 @@
 class Grid {
 public:
 	Grid();
-	Grid(int32_t w, int32_t h, float value);
+	Grid(int32_t w, int32_t h, double value);
 
-	std::vector<std::vector<float>>& getGrid();
+	std::vector<std::vector<double>>& getGrid();
 
-	float getValue(size_t x, size_t y) const;
-	void setValue(size_t x, size_t y, float v);
+	double getValue(size_t x, size_t y) const;
+	void setValue(size_t x, size_t y, double v);
 
 	int32_t getWidth() const;
 	int32_t getHeight() const;
 	
-	float getMin() const;
-	float getMax() const;
+	double getMin() const;
+	double getMax() const;
 
-	void reset(int32_t w, int32_t h, float value);
-	void resetRandom(int32_t w, int32_t h, float min, float max);
-private:
-	std::vector<std::vector<float>> temperaturGrid_{};
+	void reset(int32_t w, int32_t h, double value);
+	void resetRandom(int32_t w, int32_t h, double min, double max);
+
+	std::vector<double> toVector() const;
+	void insertVector(const std::vector<double>& v);
+private: 
+	std::vector<std::vector<double>> temperaturGrid_{};
 	int32_t w_;
 	int32_t h_;
 };
@@ -51,9 +54,12 @@ public:
 	// Specific Functions
 	void drawObjects();
 
+	void test();
+
 	// Feel free to change the signature of these functions, add arguments, etc.
 	void diffuseTemperatureExplicit();
 	void diffuseTemperatureImplicit();
+
 
 private:
 	// Attributes
