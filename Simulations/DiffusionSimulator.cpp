@@ -3,7 +3,7 @@
 using namespace std;
 
 
-DiffusionSimulator::DiffusionSimulator()
+DiffusionSimulator::DiffusionSimulator() : N{ 16 }, M{ 16 }, N_old{ 16 }, M_old{ 16 }, Alpha{ 0.05f }
 {
 	m_iTestCase = 0;
 	m_vfMovableObjectPos = Vec3();
@@ -11,7 +11,9 @@ DiffusionSimulator::DiffusionSimulator()
 	m_vfRotate = Vec3();
 
 	T = Grid(16, 16, 0.0f);
-	// rest to be implemented
+	hotColor = { 235.0f / 255.0f, 113.0f / 255.0f, 52.0f / 255.0f };
+	coldColor = { 1.0f, 1.0f, 1.0f };
+	zeroColor = { 0.0f, 0.0f, 0.0f };
 }
 
 const char * DiffusionSimulator::getTestCasesStr() {
@@ -22,13 +24,18 @@ void DiffusionSimulator::reset() {
 	m_mouse.x = m_mouse.y = 0;
 	m_trackmouse.x = m_trackmouse.y = 0;
 	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
-	T.reset(16, 16, 0.0);
+	T.reset(N, M, 0.0);
 }
 
 void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
-	// to be implemented
+	TwAddVarRW(DUC->g_pTweakBar, "N", TW_TYPE_INT32, &N, "step=1 min=3");
+	TwAddVarRW(DUC->g_pTweakBar, "M", TW_TYPE_INT32, &M, "step=1 min=3");
+	TwAddVarRW(DUC->g_pTweakBar, "Alpha", TW_TYPE_FLOAT, &Alpha, "step=0.001 min=0.001");
+	TwAddVarRW(DUC->g_pTweakBar, "Hot Color", TW_TYPE_COLOR3F, &hotColor, "colormode=rgb");
+	TwAddVarRW(DUC->g_pTweakBar, "Cold Color", TW_TYPE_COLOR3F, &coldColor, "colormode=rgb");
+	TwAddVarRW(DUC->g_pTweakBar, "Zero Color", TW_TYPE_COLOR3F, &zeroColor, "colormode=rgb");
 }
 
 void DiffusionSimulator::notifyCaseChanged(int testCase)
@@ -36,9 +43,7 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	m_iTestCase = testCase;
 	m_vfMovableObjectPos = Vec3(0, 0, 0);
 	m_vfRotate = Vec3(0, 0, 0);
-	//
-	// to be implemented
-	//
+
 	switch (m_iTestCase)
 	{
 	case 0:{
@@ -46,7 +51,7 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 
 		cout << "Explicit solver!\n";
 		
-		T.resetRandom(16, 16, -1.0f, 1.0f);
+		T.resetRandom(N, M, -1.0f, 1.0f);
 
 		break; 
 	}
@@ -55,7 +60,8 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 
 		cout << "Implicit solver!\n";
 
-		T.resetRandom(16, 16, -1.0f, 1.0f);
+		T.resetRandom(N, M, -1.0f, 1.0f);
+
 		break;
 	default:
 		cout << "Empty Test!\n";
@@ -63,19 +69,15 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	}
 }
 
-void DiffusionSimulator::diffuseTemperatureExplicit() {
-	float dt = 0.01f;
+void DiffusionSimulator::diffuseTemperatureExplicit(const float dt) {
 	float dx = 1.0f;
 	float dy = 1.0f;
-	float alpha = 0.05f;
-	//float lamda = alpha * dt / (4.0f * dx * dy);
-	//float lamda = alpha * dt * (dy * dy - dx * dx) / (dx * dx * dy * dy);
 
 	Grid newT = Grid(T.getWidth(), T.getHeight(), 0.0f);
 
 	for (size_t i = 1; i < T.getWidth() - 1; ++i) {
 		for (size_t j = 1; j < T.getHeight() - 1; ++j) {
-			float newValue = T.getValue(i, j) + dt * alpha * ((T.getValue(i + 1, j) - 2.0f * T.getValue(i, j) + T.getValue(i - 1, j)) / (dx * dx) + 
+			float newValue = T.getValue(i, j) + dt * Alpha * ((T.getValue(i + 1, j) - 2.0f * T.getValue(i, j) + T.getValue(i - 1, j)) / (dx * dx) + 
 							(T.getValue(i, j + 1) - 2.0f * T.getValue(i, j) + T.getValue(i, j - 1)) / (dy * dy));
 
 			newT.setValue(i, j, newValue);
@@ -85,72 +87,43 @@ void DiffusionSimulator::diffuseTemperatureExplicit() {
 	T = newT;
 }
 
-
-void DiffusionSimulator::diffuseTemperatureImplicit() {
+void DiffusionSimulator::diffuseTemperatureImplicit(const float dt) {
 	// solve A T = b
 
-	int n = (T.getWidth() - 2) * (T.getHeight() - 2) + 2;
+	int n = T.getWidth() * T.getHeight();
 
-	float dt = 0.01f;
 	float dx = 1.0f;
 	float dy = 1.0f;
-	float alpha = 0.05f;
-	float lamda = dt * alpha / dx * dx;
-	float mu = dt * alpha / dy * dy;
+	float lamda = dt * Alpha / (dx * dx);
+	float mu = dt * Alpha / (dy * dy);
 	float a = 1.0f + 2.0f * lamda + 2.0f * mu;
 
 	SparseMatrix<double> result(n);
 
-
-	for (int i = 1; i < n - 1; ++i) {
-		for (int j = 1; j < n - 1; ++j) {
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
 			if (i == j) {
 				result.set_element(i, j, a);
 			}
-			if (i == j - (T.getWidth() - 2)) {
+			if (i == j - T.getWidth()) {
 				result.set_element(i, j, -mu);
 			}
-			if (i == j + (T.getWidth() - 2)) {
+			if (i == j + T.getWidth()) {
 				result.set_element(i, j, -lamda);
 			}
 			if (i == j - 1) {
-				if (i % (T.getWidth() - 2) != 0) {
+				if (i % T.getWidth() != 0) {
 					result.set_element(i, j, -mu);
 				}
 			}
 			if (i == j + 1) {
-				if ((i - 1) % (T.getWidth() - 2) != 0) {
+				if ((i - 1) % T.getWidth() != 0) {
 					result.set_element(i, j, -lamda);
 				}
 			}
 		}
 	}
 
-	result.set_element(0, 0, 1.0);
-	result.set_element(n-1, n-1, 1.0);
-
-	/*for (auto& v : result.value) {
-		for (auto& i : v) {
-			std::cout << i << ", ";
-		}
-		std::cout << endl;
-	}*/
-
-	/*for (int i = 1; i < n - 1; ++i) {
-		for (int j = 1; j < n - 1; ++j) {
-			cout << result(i, j) << ", ";
-		}
-		cout << endl;
-	}*/
-
-	/*for (const auto& v : T.getGrid()) {
-		for (auto& i : v) {
-			std::cout << i << ", ";
-		}
-		std::cout << endl;
-	}*/
-
-	//std::vector<Real> b(N);
 	std::vector<Real> b = T.toVector();
 
 	// This is the part where you have to assemble the system matrix A and the right-hand side b!
@@ -172,18 +145,26 @@ void DiffusionSimulator::diffuseTemperatureImplicit() {
 
 	// Final step is to extract the grid temperatures from the solution vector x
 	T.insertVector(x);
+	T.setBoundaryToZero();
 }
 
 void DiffusionSimulator::simulateTimestep(float timeStep)
 {
+	if (N_old != N || M_old != M) {
+		notifyCaseChanged(m_iTestCase);
+		N_old = N;
+		M_old = M;
+		return;
+	}
+
 	// update current setup for each frame
 	switch (m_iTestCase)
 	{
 	case 0:
-		diffuseTemperatureExplicit();
+		diffuseTemperatureExplicit(timeStep);
 		break;
 	case 1:
-		diffuseTemperatureImplicit();
+		diffuseTemperatureImplicit(timeStep);
 		break;
 	}
 }
@@ -196,9 +177,9 @@ void DiffusionSimulator::drawObjects()
 	double min{ T.getMin() };
 	double max{ T.getMax() };
 
-	Vec3 orange{ 235.0f/255.0f, 113.0f/255.0f, 52.0f/255.0f };
-	Vec3 black{ 0.0f, 0.0f, 0.0f };
-	Vec3 white{ 1.0f, 1.0f, 1.0f };
+	Vec3 orange{ hotColor.at(0), hotColor.at(1), hotColor.at(2) };
+	Vec3 black{ zeroColor.at(0), zeroColor.at(1), zeroColor.at(2) };
+	Vec3 white{ coldColor.at(0), coldColor.at(1), coldColor.at(2) };
 
 	for (size_t x = 0; x < T.getWidth(); ++x) {
 		for (size_t y = 0; y < T.getHeight(); ++y) {
@@ -207,9 +188,9 @@ void DiffusionSimulator::drawObjects()
 			Vec3 color;
 
 			if (temp < 0.0f) {
-				color = temp / min * white;
+				color = temp / min * white + (1 - temp / min) * black;
 			}else if (temp > 0.0f) {
-				color = temp / max * orange;
+				color = temp / max * orange + (1 - temp / max) * black;
 			}
 			else {
 				color = black;
@@ -315,39 +296,33 @@ void Grid::resetRandom(int32_t w, int32_t h, double min, double max) {
 
 std::vector<double> Grid::toVector() const
 {
-	/*std::vector<double> v;
+	std::vector<double> v{};
+	v.resize(w_ * h_, 0.0);
 
 	for (size_t j = 0; j < w_; ++j) {
 		for (size_t i = 0; i < h_; ++i) {
-			v.emplace_back(temperaturGrid_.at(i).at(j));
+			v.at(j * h_ + i) = temperaturGrid_.at(j).at(i);
 		}
 	}
-
-	return v;*/
-	std::vector<double> v;
-
-	v.emplace_back(0.0);
-
-	for (size_t j = 1; j < w_ - 1; ++j) {
-		for (size_t i = 1; i < h_ - 1; ++i) {
-			v.emplace_back(temperaturGrid_.at(i).at(j));
-		}
-	}
-
-	v.emplace_back(0.0);
-
+	
 	return v;
 }
 
 void Grid::insertVector(const std::vector<double>& v) {
-	/*for (size_t j = 0; j < w_; ++j) {
+	for (size_t j = 0; j < w_; ++j) {
 		for (size_t i = 0; i < h_; ++i) {
-			temperaturGrid_.at(i).at(j) = v.at( j * h_ + i);
+			temperaturGrid_.at(j).at(i) = v.at(j * h_ + i);
 		}
-	}*/
-	for (size_t j = 1; j < w_-1; ++j) {
-		for (size_t i = 1; i < h_-1; ++i) {
-			temperaturGrid_.at(i).at(j) = v.at((j - 1) * (h_-2) + i);
-		}
+	}
+}
+
+void Grid::setBoundaryToZero()
+{
+	temperaturGrid_.at(0) = std::vector<double>(h_, 0.0);
+	temperaturGrid_.at(w_ - 1) = std::vector<double>(h_, 0.0);
+
+	for (size_t i = 1; i < w_ - 1; ++i) {
+		temperaturGrid_.at(i).at(0) = 0.0;
+		temperaturGrid_.at(i).at(h_ - 1) = 0.0;
 	}
 }

@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <array>
 
 class Grid {
 public:
@@ -28,6 +29,8 @@ public:
 
 	std::vector<double> toVector() const;
 	void insertVector(const std::vector<double>& v);
+
+	void setBoundaryToZero();
 private: 
 	std::vector<std::vector<double>> temperaturGrid_{};
 	int32_t w_;
@@ -54,11 +57,9 @@ public:
 	// Specific Functions
 	void drawObjects();
 
-	void test();
-
 	// Feel free to change the signature of these functions, add arguments, etc.
-	void diffuseTemperatureExplicit();
-	void diffuseTemperatureImplicit();
+	void diffuseTemperatureExplicit(const float dt);
+	void diffuseTemperatureImplicit(const float dt);
 
 
 private:
@@ -69,7 +70,17 @@ private:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+	
 	Grid T;
+	int32_t N;
+	int32_t M;
+	int32_t N_old;
+	int32_t M_old;
+	float Alpha;
+
+	std::array<float, 3> hotColor;
+	std::array<float, 3> coldColor;
+	std::array<float, 3> zeroColor;
 };
 
 #endif
