@@ -11,9 +11,12 @@ DiffusionSimulator::DiffusionSimulator() : N{ 16 }, M{ 16 }, N_old{ 16 }, M_old{
 	m_vfRotate = Vec3();
 
 	T = Grid(16, 16, 0.0f);
-	hotColor = { 235.0f / 255.0f, 113.0f / 255.0f, 52.0f / 255.0f };
+	/*hotColor = {235.0f / 255.0f, 113.0f / 255.0f, 52.0f / 255.0f};
 	coldColor = { 1.0f, 1.0f, 1.0f };
-	zeroColor = { 0.0f, 0.0f, 0.0f };
+	zeroColor = { 0.0f, 0.0f, 0.0f };*/
+	hotColor = { 252.0f / 255.0f, 3.0f / 255.0f, 80.0f / 255.0f };
+	coldColor = { 0.0f / 255.0f, 234.0f / 255.0f, 255.0f / 255.0f };
+	zeroColor = { 10.0f / 255.0f, 0.0f / 255.0f, 30.0f / 255.0f };
 }
 
 const char * DiffusionSimulator::getTestCasesStr() {
