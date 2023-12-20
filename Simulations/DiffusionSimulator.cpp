@@ -9,7 +9,11 @@ DiffusionSimulator::DiffusionSimulator()
 	m_vfMovableObjectPos = Vec3();
 	m_vfMovableObjectFinalPos = Vec3();
 	m_vfRotate = Vec3();
-	// rest to be implemented
+	// rest to be implemented,
+	T = Grid();
+	M = 8;
+	N = 8;
+	diff_con = 0.5f;
 }
 
 const char * DiffusionSimulator::getTestCasesStr(){
@@ -27,6 +31,9 @@ void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	// to be implemented
+	TwAddVarRW(DUC->g_pTweakBar, "M", TW_TYPE_INT8, &M, "min = 4");
+	TwAddVarRW(DUC->g_pTweakBar, "N", TW_TYPE_INT8, &N, "min = 4");
+	TwAddVarRW(DUC->g_pTweakBar, "Diffusion Constant", TW_TYPE_FLOAT, &diff_con, "min = 0");
 }
 
 void DiffusionSimulator::notifyCaseChanged(int testCase)
@@ -37,6 +44,11 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	//
 	// to be implemented
 	//
+
+	M = 8;
+	N = 8;
+	T.resize(M, N);
+
 	switch (m_iTestCase)
 	{
 	case 0:
@@ -51,8 +63,29 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	}
 }
 
-void DiffusionSimulator::diffuseTemperatureExplicit() {
+void DiffusionSimulator::diffuseTemperatureExplicit(float delta_time) {
 // to be implemented
+	int idx_i = -1;
+	for (auto& vec : T.vvCells)
+	{
+		idx_i++;
+		if (idx_i == 0 || idx_i == M-1) { continue;}
+		int idx_j = -1;
+
+		for (auto& cell : vec)
+		{
+			idx_j++;
+			if (idx_j == 0 || idx_j == N-1) { continue; }
+
+			cell.temp = delta_time * diff_con * 
+				(
+					(T.vvCells.at(idx_i+1).at(idx_j).temp - 2.0f * T.vvCells.at(idx_i).at(idx_j).temp + T.vvCells.at(idx_i - 1).at(idx_j).temp) // / ((1.0f/M) * (1.0f/M))
+					+ 
+					(T.vvCells.at(idx_i).at(idx_j+1).temp - 2.0f * T.vvCells.at(idx_i).at(idx_j).temp + T.vvCells.at(idx_i).at(idx_j - 1).temp) // / ((1.0f/N) * (1.0f/N))
+				)
+				- cell.temp;
+		}
+	}
 }
 
 
@@ -94,11 +127,17 @@ void DiffusionSimulator::diffuseTemperatureImplicit() {
 void DiffusionSimulator::simulateTimestep(float timeStep)
 {
 	// update current setup for each frame
+	// Check is User Changed Grid Size, Resize/Reset if
+	if (M != T.m|| N != T.n)
+	{
+		T.resize(M, N);
+	}
+
 	switch (m_iTestCase)
 	{
 	case 0:
 		// feel free to change the signature of this function
-		diffuseTemperatureExplicit();
+		diffuseTemperatureExplicit(timeStep);
 		break;
 	case 1:
 		// feel free to change the signature of this function
@@ -111,6 +150,15 @@ void DiffusionSimulator::drawObjects()
 {
 	// to be implemented
 	//visualization
+	for (auto& vec : T.vvCells)
+	{
+		for (auto& cell : vec)
+		{
+			Vec3 col = Vec3(0.5f + cell.temp / 100.0f * 0.5f, 0.0f, 0.5f - cell.temp / 100.0f * 0.5f);
+			DUC->setUpLighting(col, col, 0.1f, col);
+			DUC->drawSphere(cell.pos, cell.size);
+		}
+	}
 }
 
 
