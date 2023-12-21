@@ -30,9 +30,9 @@ void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	// Fields for Grid Size and Diffusion Constant
-	TwAddVarRW(DUC->g_pTweakBar, "M", TW_TYPE_INT8, &M, "min = 4");
-	TwAddVarRW(DUC->g_pTweakBar, "N", TW_TYPE_INT8, &N, "min = 4");
-	TwAddVarRW(DUC->g_pTweakBar, "Diffusion Constant", TW_TYPE_FLOAT, &diff_con, "min = 0");
+	TwAddVarRW(DUC->g_pTweakBar, "M", TW_TYPE_INT32, &M, "min = 4");
+	TwAddVarRW(DUC->g_pTweakBar, "N", TW_TYPE_INT32, &N, "min = 4");
+	TwAddVarRW(DUC->g_pTweakBar, "Diffusion Constant", TW_TYPE_DOUBLE, &diff_con, "min = 0");
 }
 
 void DiffusionSimulator::notifyCaseChanged(int testCase)
@@ -61,7 +61,7 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	}
 }
 
-void DiffusionSimulator::diffuseTemperatureExplicit(float delta_time) {
+void DiffusionSimulator::diffuseTemperatureExplicit(double delta_time) {
 	// Calculate all new Temps, skipping the outer borders with continue
 	int idx_i = -1;
 	for (auto& vec : T.vvCells)
@@ -78,7 +78,7 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float delta_time) {
 			/*							(T_m+1,n - 2 * T_m,n + T_m-1,n		T_m,n+1 - 2 * T_m,n + T_m,n-1)
 			 * T^t+1 = delt_t * alpha *	(-----------------------------	+	-----------------------------) + T^t
 			 *							(	deltaM²								deltaN²					 )
-			 */ 
+			 */
 			cell.temp = delta_time * diff_con *
 				(
 					(T.vvCells.at(idx_i+1).at(idx_j).temp - 2.0f * T.vvCells.at(idx_i).at(idx_j).temp + T.vvCells.at(idx_i - 1).at(idx_j).temp)
@@ -91,7 +91,7 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float delta_time) {
 }
 
 
-void DiffusionSimulator::diffuseTemperatureImplicit(float delta_time) {
+void DiffusionSimulator::diffuseTemperatureImplicit(double delta_time) {
 	// solve A T = b
 
 	// This is just an example to show how to work with the PCG solver,
@@ -124,13 +124,13 @@ void DiffusionSimulator::diffuseTemperatureImplicit(float delta_time) {
 
 	// Fill A
 	// Fill in Multi-Diagonal with Lambdas
-	float minus_lambda = -1.0f * diff_con * delta_time;
-	float diagonal = 1 + 4 * diff_con * delta_time;
+	double minus_lambda = -1.0f * diff_con * delta_time;
+	double diagonal = 1 + 4 * diff_con * delta_time;
 	for (int k = 0; k < Q; ++k)
 	{
 		if (k < T.n || k % T.n == 0 || k % T.n == T.n - 1 || k >= Q - T.n)
 		{
-			// Fill in 1s for the diagonals of boundiary cells
+			// Fill in 1s for the diagonals of boundary cells
 			A.set_element(k, k, 1.0f);
 		}
 		else
@@ -177,8 +177,9 @@ void DiffusionSimulator::diffuseTemperatureImplicit(float delta_time) {
 	// to be implemented
 	for (int k = 0; k < Q; ++k)
 	{
-		T.vvCells.at(k / T.n).at(k % T.n).temp = x[k];
+		T.vvCells.at(k / T.n).at(k % T.n).temp = x.at(k);
 	}
+
 	T.set_boundaries();
 }
 
@@ -216,11 +217,9 @@ void DiffusionSimulator::drawObjects()
 		for (auto& cell : vec)
 		{
 			// RGB
-			// Vec3 col = Vec3(0.5f + cell.temp * 0.5f, 0.0f, 0.5f - cell.temp * 0.5f);
 			Vec3 col = Vec3(abs(cell.temp), abs(cell.temp * 0.5f - abs(cell.temp) * 0.5f), cell.temp * 0.5f + abs(cell.temp) * 0.5f);
-			
 
-			DUC->setUpLighting(col, col, 0.1f, col);
+			DUC->setUpLighting(Vec3(0.0f), Vec3(0.1f), 1.0f, col);
 			DUC->drawSphere(cell.pos, cell.size);
 		}
 	}

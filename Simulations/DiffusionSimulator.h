@@ -7,9 +7,9 @@
 struct Cell
 {
 	Vec3 pos{ 1.0f, 1.0f, 1.0f };
-	float size{ 1.0f };
-	float temp{ 0.0f };
-	Cell(Vec3 pos, float size, float temp = 0.0f) : pos(pos), size(size), temp(temp) {}
+	double size{ 1.0f };
+	double temp{ 0.0f };
+	Cell(Vec3 pos, double size, double temp = 0.0f) : pos(pos), size(size), temp(temp) {}
 };
 
 class Grid {
@@ -19,7 +19,7 @@ public:
 	int n{4};
 	vector<vector<Cell>> vvCells;
 
-	void set_boundaries(float val = 0.0f)
+	void set_boundaries(double val = 0.0f)
 	{
 		for (int i = 0; i < m; ++i)
 		{
@@ -37,9 +37,7 @@ public:
 	{
 		std::random_device rand_device;
 		std::mt19937 generator(rand_device());
-		std::uniform_real_distribution<float> distribution(-1.0f, 1.1f);
-		// float temp_temp = distribution(generator);
-		// float temps[m][n];
+		std::uniform_real_distribution<double> distribution(-1.0, 1.0);
 
 
 		for (auto& vector : vvCells)
@@ -47,7 +45,7 @@ public:
 			for (auto& cell : vector)
 			{
 				cell.temp = distribution(generator);
-				// cell.temp = cell.pos.x > 0 && cell.pos.y > 0 ? 2.0f : -2.0;
+				// cell.temp = cell.pos.x > 0 && cell.pos.y > 0 ? 1.0 : 0.0;
 			}
 		}
 
@@ -63,9 +61,9 @@ public:
 		n = j;
 		vvCells.clear();
 
-		float w_size = 1.0f / m;
-		float h_size = 1.0f / n;
-		float sphere_size = (w_size + h_size + 0.1f) / 3.0f;
+		double w_size = 1.0f / m;
+		double h_size = 1.0f / n;
+		double sphere_size = (w_size + h_size + 0.1f) / 3.0f;
 
 		for (int i = 0; i < m; ++i)
 		{
@@ -109,8 +107,8 @@ public:
 	void drawObjects();
 
 	// Feel free to change the signature of these functions, add arguments, etc.
-	void diffuseTemperatureExplicit(float delta_time);
-	void diffuseTemperatureImplicit(float delta_time);
+	void diffuseTemperatureExplicit(double delta_time);
+	void diffuseTemperatureImplicit(double delta_time);
 
 private:
 	// Attributes
@@ -123,7 +121,7 @@ private:
 	Grid T;
 	int M;
 	int N;
-	float diff_con;
+	double diff_con;
 };
 
 #endif
