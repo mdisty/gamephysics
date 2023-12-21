@@ -11,9 +11,6 @@ DiffusionSimulator::DiffusionSimulator() : N{ 16 }, M{ 16 }, N_old{ 16 }, M_old{
 	m_vfRotate = Vec3();
 
 	T = Grid(16, 16, 0.0f);
-	/*hotColor = {235.0f / 255.0f, 113.0f / 255.0f, 52.0f / 255.0f};
-	coldColor = { 1.0f, 1.0f, 1.0f };
-	zeroColor = { 0.0f, 0.0f, 0.0f };*/
 	hotColor = { 252.0f / 255.0f, 3.0f / 255.0f, 80.0f / 255.0f };
 	coldColor = { 0.0f / 255.0f, 234.0f / 255.0f, 255.0f / 255.0f };
 	zeroColor = { 10.0f / 255.0f, 0.0f / 255.0f, 30.0f / 255.0f };
@@ -80,8 +77,8 @@ void DiffusionSimulator::diffuseTemperatureExplicit(const float dt) {
 
 	for (size_t i = 1; i < T.getWidth() - 1; ++i) {
 		for (size_t j = 1; j < T.getHeight() - 1; ++j) {
-			float newValue = T.getValue(i, j) + dt * Alpha * ((T.getValue(i + 1, j) - 2.0f * T.getValue(i, j) + T.getValue(i - 1, j)) / (dx * dx) + 
-							(T.getValue(i, j + 1) - 2.0f * T.getValue(i, j) + T.getValue(i, j - 1)) / (dy * dy));
+			float newValue = T.getValue(i, j) + dt * Alpha * ((T.getValue(i + 1, j) - 2.0f * T.getValue(i, j) + T.getValue(i - 1, j)) / (dx * dx) +
+							(T.getValue(i, j + 1) - 2.0f * T.getValue(i, j) + T.getValue(i, j - 1)) / (dx * dx));
 
 			newT.setValue(i, j, newValue);
 		}
@@ -104,26 +101,15 @@ void DiffusionSimulator::diffuseTemperatureImplicit(const float dt) {
 	SparseMatrix<double> result(n);
 
 	for (int i = 0; i < n; ++i) {
-		for (int j = 0; j < n; ++j) {
-			if (i == j) {
-				result.set_element(i, j, a);
-			}
-			if (i == j - T.getWidth()) {
-				result.set_element(i, j, -mu);
-			}
-			if (i == j + T.getWidth()) {
-				result.set_element(i, j, -lamda);
-			}
-			if (i == j - 1) {
-				if (i % T.getWidth() != 0) {
-					result.set_element(i, j, -mu);
-				}
-			}
-			if (i == j + 1) {
-				if ((i - 1) % T.getWidth() != 0) {
-					result.set_element(i, j, -lamda);
-				}
-			}
+		if (i % T.getHeight() == (T.getHeight() - 1) || i % T.getHeight() == 0 || i < T.getHeight() || i >= n - T.getHeight()) {
+			result.set_element(i, i, 1.0);
+		}
+		else {
+			result.set_element(i, i, a);
+			result.set_element(i - 1, i, -lamda);
+			result.set_element(i + 1, i, -mu);
+			result.set_element(i + T.getHeight(), i, -mu);
+			result.set_element(i - T.getHeight(), i, -lamda);
 		}
 	}
 
@@ -180,9 +166,9 @@ void DiffusionSimulator::drawObjects()
 	double min{ T.getMin() };
 	double max{ T.getMax() };
 
-	Vec3 orange{ hotColor.at(0), hotColor.at(1), hotColor.at(2) };
+	Vec3 hot{ hotColor.at(0), hotColor.at(1), hotColor.at(2) };
 	Vec3 black{ zeroColor.at(0), zeroColor.at(1), zeroColor.at(2) };
-	Vec3 white{ coldColor.at(0), coldColor.at(1), coldColor.at(2) };
+	Vec3 cold{ coldColor.at(0), coldColor.at(1), coldColor.at(2) };
 
 	for (size_t x = 0; x < T.getWidth(); ++x) {
 		for (size_t y = 0; y < T.getHeight(); ++y) {
@@ -191,11 +177,12 @@ void DiffusionSimulator::drawObjects()
 			Vec3 color;
 
 			if (temp < 0.0f) {
-				color = temp / min * white + (1 - temp / min) * black;
-			}else if (temp > 0.0f) {
-				color = temp / max * orange + (1 - temp / max) * black;
-			}
-			else {
+				if (std::abs(min) > 1.0f) temp = temp / min;
+				color = std::abs(temp) * cold + (1.0 - std::abs(temp)) * black;
+			} else if (temp > 0.0f) {
+				if (std::abs(max) > 1.0f) temp = temp / max;
+				color = std::abs(temp) * hot + (1.0 - std::abs(temp)) * black;
+			} else {
 				color = black;
 			}
 
@@ -302,9 +289,9 @@ std::vector<double> Grid::toVector() const
 	std::vector<double> v{};
 	v.resize(w_ * h_, 0.0);
 
-	for (size_t j = 0; j < w_; ++j) {
-		for (size_t i = 0; i < h_; ++i) {
-			v.at(j * h_ + i) = temperaturGrid_.at(j).at(i);
+	for (size_t i = 0; i < w_; ++i) {
+		for (size_t j = 0; j < h_; ++j) {
+			v.at(i * h_ + j) = temperaturGrid_.at(i).at(j);
 		}
 	}
 	
@@ -312,9 +299,9 @@ std::vector<double> Grid::toVector() const
 }
 
 void Grid::insertVector(const std::vector<double>& v) {
-	for (size_t j = 0; j < w_; ++j) {
-		for (size_t i = 0; i < h_; ++i) {
-			temperaturGrid_.at(j).at(i) = v.at(j * h_ + i);
+	for (size_t i = 0; i < w_; ++i) {
+		for (size_t j = 0; j < h_; ++j) {
+			temperaturGrid_.at(i).at(j) = v.at(i * h_ + j);
 		}
 	}
 }
