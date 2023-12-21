@@ -217,7 +217,7 @@ void DiffusionSimulator::drawObjects()
 		for (auto& cell : vec)
 		{
 			// RGB
-			Vec3 col = Vec3(abs(cell.temp), abs(cell.temp * 0.5f - abs(cell.temp) * 0.5f), cell.temp * 0.5f + abs(cell.temp) * 0.5f);
+			Vec3 col = Vec3(abs(cell.temp), cell.temp * 0.5f + abs(cell.temp) * 0.5f, abs(cell.temp * 0.5f - abs(cell.temp) * 0.5f));
 
 			DUC->setUpLighting(Vec3(0.0f), Vec3(0.1f), 1.0f, col);
 			DUC->drawSphere(cell.pos, cell.size);
