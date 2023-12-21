@@ -21,13 +21,31 @@ public:
 	int32_t getWidth() const;
 	int32_t getHeight() const;
 	
+	/*
+	@return: The min value of the whole matrix
+	*/
 	double getMin() const;
+	/*
+	@return: The max value of the whole matrix
+	*/
 	double getMax() const;
 
+	/*
+	Resets the grid with a new width, height and a default value
+	*/
 	void reset(int32_t w, int32_t h, double value);
+	/*
+	Resets the grid with a new width, height and a random default value in the range [min, max)
+	*/
 	void resetRandom(int32_t w, int32_t h, double min, double max);
 
+	/*
+	@return: The whole matrix as a vector with the size = w * h (colums stacked)
+	*/
 	std::vector<double> toVector() const;
+	/*
+	Inserts a whole vector with the size = w * h into the matrix (colums stacked)
+	*/
 	void insertVector(const std::vector<double>& v);
 
 	void setBoundaryToZero();

@@ -217,6 +217,7 @@ void DiffusionSimulator::onMouse(int x, int y)
 Grid::Grid() : w_{ 0 }, h_{ 0 } {};
 
 Grid::Grid(int32_t w, int32_t h, double value) : w_{ w }, h_{ h } {
+	if (w < 0 || h < 0) throw std::runtime_error("The width/height can not be negative!");
 	temperaturGrid_.resize(w, std::vector<double>(h, value));
 };
 
@@ -265,6 +266,7 @@ double Grid::getMax() const
 
 void Grid::reset(int32_t w, int32_t h, double value)
 {
+	if (w < 0 || h < 0) throw std::runtime_error("The width/height can not be negative!");
 	w_ = w;
 	h_ = h;
 	temperaturGrid_.clear();
@@ -272,6 +274,8 @@ void Grid::reset(int32_t w, int32_t h, double value)
 }
 
 void Grid::resetRandom(int32_t w, int32_t h, double min, double max) {
+	if (w < 0 || h < 0) throw std::runtime_error("The width/height can not be negative!");
+	if (min > max) throw std::runtime_error("The minimum is bigger than the maximum value!");
 	std::mt19937 eng(time(nullptr));
 	std::uniform_real_distribution<double> randVal(min, max);
 
@@ -299,6 +303,7 @@ std::vector<double> Grid::toVector() const
 }
 
 void Grid::insertVector(const std::vector<double>& v) {
+	if (v.size() != w_ * h_) throw std::runtime_error("Vector size invalid: size should be grid.width * grid.height!");
 	for (size_t i = 0; i < w_; ++i) {
 		for (size_t j = 0; j < h_; ++j) {
 			temperaturGrid_.at(i).at(j) = v.at(i * h_ + j);
