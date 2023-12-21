@@ -37,13 +37,17 @@ public:
 	{
 		std::random_device rand_device;
 		std::mt19937 generator(rand_device());
-		std::uniform_real_distribution<float> distribution(-50.0f, 50.0f);
+		std::uniform_real_distribution<float> distribution(-1.0f, 1.1f);
+		// float temp_temp = distribution(generator);
+		// float temps[m][n];
+
 
 		for (auto& vector : vvCells)
 		{
 			for (auto& cell : vector)
 			{
 				cell.temp = distribution(generator);
+				// cell.temp = cell.pos.x > 0 && cell.pos.y > 0 ? 2.0f : -2.0;
 			}
 		}
 
@@ -61,7 +65,7 @@ public:
 
 		float w_size = 1.0f / m;
 		float h_size = 1.0f / n;
-		float sphere_size = (w_size + h_size) * 0.5f;
+		float sphere_size = (w_size + h_size + 0.1f) / 3.0f;
 
 		for (int i = 0; i < m; ++i)
 		{
@@ -106,7 +110,7 @@ public:
 
 	// Feel free to change the signature of these functions, add arguments, etc.
 	void diffuseTemperatureExplicit(float delta_time);
-	void diffuseTemperatureImplicit();
+	void diffuseTemperatureImplicit(float delta_time);
 
 private:
 	// Attributes
