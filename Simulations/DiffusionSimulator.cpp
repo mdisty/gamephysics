@@ -3,14 +3,35 @@
 using namespace std;
 
 
+
+
 DiffusionSimulator::DiffusionSimulator()
 {
 	m_iTestCase = 0;
 	m_vfMovableObjectPos = Vec3();
 	m_vfMovableObjectFinalPos = Vec3();
 	m_vfRotate = Vec3();
-	// rest to be implemented
+	
+
+	T = Grid(16,16, 0.);
+	n = 16;
+	m = 16;
+	alpha = 0.2;
+
 }
+
+Grid::Grid()
+{
+	values.resize(0);
+}
+Grid::Grid(int width, int height, int time)
+{
+	values.resize(m + n * m + t * m * n);
+	m = width;
+	n = height;
+	t = time;
+}
+
 
 const char * DiffusionSimulator::getTestCasesStr(){
 	return "Explicit_solver, Implicit_solver";
@@ -27,6 +48,21 @@ void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	// to be implemented
+
+	switch (m_iTestCase)
+	{
+	case 0:
+		TwAddVarRW(DUC->g_pTweakBar, "n (width)", TW_TYPE_INT32, &m, "min=1");
+		TwAddVarRW(DUC->g_pTweakBar, "m (length)", TW_TYPE_INT32, &n, "min=1");
+		TwAddVarRW(DUC->g_pTweakBar, "alpha", TW_TYPE_FLOAT, &alpha, "min=0.1 step=0.1");
+		break;
+	case 1:
+		TwAddVarRW(DUC->g_pTweakBar, "n (width)", TW_TYPE_INT32, &m, "min=1");
+		TwAddVarRW(DUC->g_pTweakBar, "m (length)", TW_TYPE_INT32, &n, "min=1");
+		TwAddVarRW(DUC->g_pTweakBar, "alpha", TW_TYPE_FLOAT, &alpha, "min=0.1 step=0.1");
+		break;
+	default: break;
+	}
 }
 
 void DiffusionSimulator::notifyCaseChanged(int testCase)
@@ -34,9 +70,9 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	m_iTestCase = testCase;
 	m_vfMovableObjectPos = Vec3(0, 0, 0);
 	m_vfRotate = Vec3(0, 0, 0);
-	//
-	// to be implemented
-	//
+	
+	
+
 	switch (m_iTestCase)
 	{
 	case 0:
@@ -51,12 +87,16 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	}
 }
 
-void DiffusionSimulator::diffuseTemperatureExplicit() {
+void DiffusionSimulator::diffuseTemperatureExplicit(float timestep) {
 // to be implemented
+	for (size_t i = 0; i < length; i++)
+	{
+
+	}
 }
 
 
-void DiffusionSimulator::diffuseTemperatureImplicit() {
+void DiffusionSimulator::diffuseTemperatureImplicit(float timestep) {
 	// solve A T = b
 
 	// This is just an example to show how to work with the PCG solver,
@@ -98,11 +138,11 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 	{
 	case 0:
 		// feel free to change the signature of this function
-		diffuseTemperatureExplicit();
+		diffuseTemperatureExplicit(timeStep);
 		break;
 	case 1:
 		// feel free to change the signature of this function
-		diffuseTemperatureImplicit();
+		diffuseTemperatureImplicit(timeStep);
 		break;
 	}
 }
@@ -111,6 +151,8 @@ void DiffusionSimulator::drawObjects()
 {
 	// to be implemented
 	//visualization
+
+	
 }
 
 
@@ -132,3 +174,4 @@ void DiffusionSimulator::onMouse(int x, int y)
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
 }
+
