@@ -24,6 +24,8 @@ using namespace GamePhysics;
 #define MASS_SPRING_SYSTEM
 //#define RIGID_BODY_SYSTEM
 //#define SPH_SYSTEM
+//#define DIFFUSION_SYSTEM
+//#define DIFFUSION_SPRING_SYSTEM
 
 #ifdef TEMPLATE_DEMO
 #include "TemplateSimulator.h"
@@ -36,6 +38,12 @@ using namespace GamePhysics;
 #endif
 #ifdef SPH_SYSTEM
 //#include "SPHSystemSimulator.h"
+#endif
+#ifdef DIFFUSION_SYSTEM
+#include "DiffusionSimulator.h"
+#endif
+#ifdef DIFFUSION_SPRING_SYSTEM
+#include "DiffusionSpringSystemSimulator.h"
 #endif
 
 DrawingUtilitiesClass * g_pDUC;
@@ -369,6 +377,12 @@ int main(int argc, char* argv[])
 #endif
 #ifdef SPH_SYSTEM
 	//g_pSimulator= new SPHSystemSimulator();
+#endif
+#ifdef DIFFUSION_SYSTEM
+	g_pSimulator = new DiffusionSimulator();
+#endif
+#ifdef DIFFUSION_SPRING_SYSTEM
+	g_pSimulator = new DiffusionSpringSystemSimulator();
 #endif
 	g_pSimulator->reset();
 
