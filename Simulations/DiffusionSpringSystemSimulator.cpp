@@ -20,7 +20,7 @@ void DiffusionSpringSystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 	this->DUC = DUC;
 	switch (m_iTestCase)
 	{
-	case 0:break;
+	case 0: { break; }
 	default:break;
 	}
 }
