@@ -1,11 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <array>
 #include <algorithm>
 #include <stdexcept>
 #include <random>
 #include <deque>
+#include <tuple>
+#include <iostream>
 
 class DiffusionGrid {
 public:
@@ -20,6 +21,8 @@ public:
 
 	int32_t getWidth() const;
 	int32_t getHeight() const;
+
+	std::deque<std::deque<bool>>& getMask();
 
 	/*
 	Set the current temeratur grid to newGrid. 
@@ -60,7 +63,9 @@ public:
 	void setBoundaryToZero();
 
 	bool isOnBoundary(size_t x, size_t y);
-private:
+
+	void applyMask();
+//private:
 	//std::vector<std::vector<double>> temperaturGrid_{};
 	//std::vector<std::vector<bool>> mask_{};
 
@@ -73,10 +78,12 @@ private:
 
 class Diffusion {
 public:
-	Diffusion() = delete;
+	Diffusion();
 	Diffusion(DiffusionGrid grid);
 
+	DiffusionGrid& getDiffusionGrid();
+
 	void diffuseTemperatureExplicit(const float dt, const float alpha);
-private:
+//private:
 	DiffusionGrid diffusionGrid_;
 };

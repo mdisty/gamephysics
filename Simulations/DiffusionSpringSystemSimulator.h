@@ -2,6 +2,7 @@
 #define DIFFUSIONSPRINGSYSTEMSIMULATOR_h
 
 #include "Simulator.h"
+#include "SpringSystem.h"
 
 class DiffusionSpringSystemSimulator: public Simulator{
 public:
@@ -26,6 +27,7 @@ public:
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
 private:
+	SpringSystem springSystem_;
 };
 
 #endif

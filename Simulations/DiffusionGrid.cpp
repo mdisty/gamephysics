@@ -7,7 +7,7 @@ DiffusionGrid::DiffusionGrid() : w_{ 0 }, h_{ 0 } {};
 DiffusionGrid::DiffusionGrid(int32_t w, int32_t h) : w_{ w }, h_{ h } {
 	if (w < 0 || h < 0) throw std::runtime_error("The width/height can not be negative!");
 	temperaturGrid_.resize(w, std::deque<double>(h, 0.0));
-	mask_.resize(false, std::deque<bool>(h, false));
+	mask_.resize(w, std::deque<bool>(h, false));
 }
 
 double DiffusionGrid::getValue(size_t x, size_t y) const
@@ -29,48 +29,15 @@ void DiffusionGrid::resetValue(size_t x, size_t y)
 
 bool DiffusionGrid::insertNeighbour(size_t x, size_t y, double v)
 {
-	std::array<size_t, 2> slot1{ x + 1, y + 1 };
-	std::array<size_t, 2> slot2{ x + 1, y - 1 };
-	std::array<size_t, 2> slot3{ x - 1, y + 1 };
-	std::array<size_t, 2> slot4{ x - 1, y - 1 };
-
-	if (!mask_.at(slot1.at(0)).at(slot1.at(1))) {
-		if (isOnBoundary(slot1.at(0), slot1.at(1))) {
+	if (!mask_.at(x).at(y)) {
+		if (isOnBoundary(x, y)) {
 			growGrid(1);
+			x += 1;
+			y += 1;
 		}
 
-		temperaturGrid_.at(slot1.at(0)).at(slot1.at(1)) = v;
-		mask_.at(slot1.at(0)).at(slot1.at(1)) = true;
-
-		return true;
-	}else
-	if (!mask_.at(slot2.at(0)).at(slot2.at(1))) {
-		if (isOnBoundary(slot2.at(0), slot2.at(1))) {
-			growGrid(1);
-		}
-
-		temperaturGrid_.at(slot2.at(0)).at(slot2.at(1)) = v;
-		mask_.at(slot2.at(0)).at(slot2.at(1)) = true;
-
-		return true;
-	}else
-	if (!mask_.at(slot3.at(0)).at(slot3.at(1))) {
-		if (isOnBoundary(slot3.at(0), slot3.at(1))) {
-			growGrid(1);
-		}
-
-		temperaturGrid_.at(slot3.at(0)).at(slot3.at(1)) = v;
-		mask_.at(slot3.at(0)).at(slot3.at(1)) = true;
-
-		return true;
-	}else
-	if (!mask_.at(slot4.at(0)).at(slot4.at(1))) {
-		if (isOnBoundary(slot4.at(0), slot4.at(1))) {
-			growGrid(1);
-		}
-
-		temperaturGrid_.at(slot4.at(0)).at(slot4.at(1)) = v;
-		mask_.at(slot4.at(0)).at(slot4.at(1)) = true;
+		temperaturGrid_.at(x).at(y) = v;
+		mask_.at(x).at(y) = true;
 
 		return true;
 	}
@@ -86,6 +53,11 @@ int32_t DiffusionGrid::getWidth() const
 int32_t DiffusionGrid::getHeight() const
 {
 	return h_;
+}
+
+std::deque<std::deque<bool>>& DiffusionGrid::getMask()
+{
+	return mask_;
 }
 
 void DiffusionGrid::setTemperaturGrid(std::deque<std::deque<double>>&& newGrid)
@@ -141,11 +113,20 @@ void DiffusionGrid::growGrid(size_t factor)
 	w_ += 2 * factor;
 	temperaturGrid_.push_front(std::deque<double>(h_, 0.0));
 	temperaturGrid_.push_back(std::deque<double>(h_, 0.0));
+	mask_.push_front(std::deque<bool>(h_, false));
+	mask_.push_back(std::deque<bool>(h_, false));
 
 	for (auto& column : temperaturGrid_) {
 		for (size_t i = 0; i < factor; ++i) {
 			column.push_front(0.0);
 			column.push_back(0.0);
+		}
+	}
+
+	for (auto& column : mask_) {
+		for (size_t i = 0; i < factor; ++i) {
+			column.push_front(false);
+			column.push_back(false);
 		}
 	}
 }
@@ -191,9 +172,27 @@ bool DiffusionGrid::isOnBoundary(size_t x, size_t y)
 	return false;
 }
 
+void DiffusionGrid::applyMask()
+{
+	for (size_t i = 0; i < w_; ++i) {
+		for (size_t u = 0; u < h_; ++u) {
+			if (!mask_.at(i).at(u)) {
+				temperaturGrid_.at(i).at(u) = 0.0;
+			}
+		}
+	}
+}
+
 // Diffusion class
 
+Diffusion::Diffusion() : diffusionGrid_(5, 5) {}
+
 Diffusion::Diffusion(DiffusionGrid grid) : diffusionGrid_{grid} {}
+
+DiffusionGrid& Diffusion::getDiffusionGrid()
+{
+	return diffusionGrid_;
+}
 
 void Diffusion::diffuseTemperatureExplicit(const float dt, const float alpha)
 {
@@ -213,4 +212,6 @@ void Diffusion::diffuseTemperatureExplicit(const float dt, const float alpha)
 	}
 
 	diffusionGrid_.setTemperaturGrid(std::move(newGrid));
+
+	diffusionGrid_.applyMask();
 }
