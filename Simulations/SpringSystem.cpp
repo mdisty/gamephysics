@@ -227,16 +227,44 @@ Vec3 SpringSystem::calculateForce(Spring s, int pointIndex)
 	return -stiffness_ * (length - (s.length + average)) * d;
 }
 
-void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC) const
+void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC)
 {
 	std::mt19937 eng;
 	std::uniform_real_distribution<float> randCol(0.0f, 1.0f);
+
+	//visualization
+	auto& diffusionGrid = diffusion_.getDiffusionGrid();
+
+	double min{ diffusionGrid.getMin() };
+	double max{ diffusionGrid.getMax() };
+
+	Vec3 hot { 252.0f / 255.0f, 3.0f / 255.0f, 80.0f / 255.0f };
+	Vec3 black { 10.0f / 255.0f, 0.0f / 255.0f, 30.0f / 255.0f };
+	Vec3 cold { 0.0f / 255.0f, 234.0f / 255.0f, 255.0f / 255.0f };
+
 	for (int i = 0; i < massPoints_.size(); ++i) {
+		MassPoint massPoint{ massPoints_.at(i) };
+
+		double temp{ diffusionGrid.getValue(massPoint.gridPosition.at(0), massPoint.gridPosition.at(1))};
+
+		Vec3 color(0.0f);
+
+		if (temp < 0.0f) {
+			if (std::abs(min) > 1.0f) temp = temp / min;
+			color = std::abs(temp) * cold + (1.0 - std::abs(temp)) * black;
+		}
+		else if (temp > 0.0f) {
+			if (std::abs(max) > 1.0f) temp = temp / max;
+			color = std::abs(temp) * hot + (1.0 - std::abs(temp)) * black;
+		}
+		else {
+			color = black;
+		}
+
 		DUC->setUpLighting(Vec3(),
 			0.4 * Vec3(1, 1, 1),
-			100, Vec3(1.5 * randCol(eng),
-				0.6 * randCol(eng), 1.5 * randCol(eng)));
-		DUC->drawSphere(massPoints_.at(i).position, 0.1f);
+			100, color);
+		DUC->drawSphere(massPoints_.at(i).position, 0.2f);
 	}
 
 	for (int i = 0; i < springs_.size(); ++i) {

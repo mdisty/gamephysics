@@ -49,8 +49,8 @@ public:
 	*/
 	Vec3 calculateForce(Spring s, int pointIndex);
 
-	void drawSprings(DrawingUtilitiesClass* DUC) const;
-//private:
+	void drawSprings(DrawingUtilitiesClass* DUC);
+private:
 	int addMassPoint(Vec3 position, Vec3 velocity, std::array<size_t, 2> gridPosition, float temperatur, bool isFixed);
 	void addSpring(int massPoint1, int massPoint2, float length);
 

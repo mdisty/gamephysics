@@ -65,10 +65,7 @@ public:
 	bool isOnBoundary(size_t x, size_t y);
 
 	void applyMask();
-//private:
-	//std::vector<std::vector<double>> temperaturGrid_{};
-	//std::vector<std::vector<bool>> mask_{};
-
+private:
 	std::deque<std::deque<double>> temperaturGrid_{};
 	std::deque<std::deque<bool>> mask_{};
 
@@ -84,6 +81,6 @@ public:
 	DiffusionGrid& getDiffusionGrid();
 
 	void diffuseTemperatureExplicit(const float dt, const float alpha);
-//private:
+private:
 	DiffusionGrid diffusionGrid_;
 };

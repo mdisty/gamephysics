@@ -37,7 +37,7 @@ void DiffusionSpringSystemSimulator::notifyCaseChanged(int testCase)
 	case 0:{
 		reset();
 
-		int point1 = springSystem_.insertSpringMassPoint(0, Vec3(0.0f, 1.0f, 0.0f), 1.0f, 0.0f);
+		int point1 = springSystem_.insertSpringMassPoint(0, Vec3(0.0f, 1.0f, 0.0f), 1.0f, 1.0f);
 		springSystem_.insertSpringMassPoint(0, Vec3(1.0f, 0.0f, 0.0f), 1.0f, 0.0f);
 		springSystem_.insertSpringMassPoint(0, Vec3(-1.0f, 0.0f, 0.0f), 1.0f, 0.0f);
 		springSystem_.insertSpringMassPoint(0, Vec3(0.0f, -1.0f, 0.0f), 1.0f, 0.0f);
@@ -46,7 +46,7 @@ void DiffusionSpringSystemSimulator::notifyCaseChanged(int testCase)
 		springSystem_.insertSpringMassPoint(point1, Vec3(1.0f, 1.0f, 0.0f), 1.0f, 0.0f);
 		springSystem_.insertSpringMassPoint(point1, Vec3(-1.0f, 1.0f, 0.0f), 1.0f, 0.0f);
 
-		springSystem_.insertSpringMassPoint(point2, Vec3(1.0f, 2.0f, 0.0f), 1.0f, 0.0f);
+		springSystem_.insertSpringMassPoint(point2, Vec3(1.0f, 2.0f, 0.0f), 1.0f, 3.0f);
 
 		break; }
 	default:
