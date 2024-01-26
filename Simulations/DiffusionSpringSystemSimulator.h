@@ -23,11 +23,17 @@ public:
 	// Specific Functions
 
 	// Attributes
-	Point2D m_mouse;
-	Point2D m_trackmouse;
-	Point2D m_oldtrackmouse;
+	Point2D m_mouse{};
+	Point2D m_trackmouse{};
+	Point2D m_oldtrackmouse{};
 private:
 	SpringSystem springSystem_;
+
+	bool startSimulation_{ false };
+
+	std::array<float, 3> hotColor;
+	std::array<float, 3> coldColor;
+	std::array<float, 3> zeroColor;
 };
 
 #endif

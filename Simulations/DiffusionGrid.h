@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pcgsolver.h"
+
 #include <array>
 #include <algorithm>
 #include <stdexcept>
@@ -17,6 +19,10 @@ public:
 	void setValue(size_t x, size_t y, double v);
 	void resetValue(size_t x, size_t y);
 
+	/*
+	* Inserts value at grid position (x,y) but checks if the grid needs to resize beforehand
+	* @return true if mask is set to false at (x,y), false otherwise
+	*/
 	bool insertNeighbour(size_t x, size_t y, double value);
 
 	int32_t getWidth() const;
@@ -25,38 +31,38 @@ public:
 	std::deque<std::deque<bool>>& getMask();
 
 	/*
-	Set the current temeratur grid to newGrid. 
-	The mask, width and height of this object have to match the new grid! They won't
-	be updated.
+	* Set the current temeratur grid to newGrid. 
+	* The mask, width and height of this object have to match the new grid! They won't
+	* be updated.
 	*/
 	void setTemperaturGrid(std::deque<std::deque<double>>&& newGrid);
 
 	/*
-	@return: The min value of the whole matrix
+	* @return: The min value of the whole matrix
 	*/
 	double getMin() const;
 	/*
-	@return: The max value of the whole matrix
+	* @return: The max value of the whole matrix
 	*/
 	double getMax() const;
 
 	/*
-	Resets the grid with a new width, height and a default value
+	* Resets the grid with a new width, height and a default value
 	*/
 	void reset(int32_t w, int32_t h, double v);
 	/*
-	Resets the grid with a new width, height and a random default value in the range [min, max)
+	* Resets the grid with a new width, height and a random default value in the range [min, max)
 	*/
 	void resetRandom(int32_t w, int32_t h, double min, double max);
 
 	void growGrid(size_t factor = 1);
 
 	/*
-	@return: The whole matrix as a vector with the size = w * h (colums stacked)
+	* @return: The whole matrix as a vector with the size = w * h (colums stacked)
 	*/
 	std::vector<double> toVector() const;
 	/*
-	Inserts a whole vector with the size = w * h into the matrix (colums stacked)
+	* Inserts a whole vector with the size = w * h into the matrix (colums stacked)
 	*/
 	void insertVector(const std::vector<double>& v);
 
@@ -64,6 +70,9 @@ public:
 
 	bool isOnBoundary(size_t x, size_t y);
 
+	/*
+	* Resets every value of temperaturGrid_ to 0.0f where the mask is false
+	*/
 	void applyMask();
 private:
 	std::deque<std::deque<double>> temperaturGrid_{};
@@ -81,6 +90,7 @@ public:
 	DiffusionGrid& getDiffusionGrid();
 
 	void diffuseTemperatureExplicit(const float dt, const float alpha);
+	void diffuseTemperatureImplicit(const float dt, const float alpha);
 private:
 	DiffusionGrid diffusionGrid_;
 };

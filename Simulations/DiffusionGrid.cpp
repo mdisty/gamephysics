@@ -215,3 +215,57 @@ void Diffusion::diffuseTemperatureExplicit(const float dt, const float alpha)
 
 	diffusionGrid_.applyMask();
 }
+
+void Diffusion::diffuseTemperatureImplicit(const float dt, const float alpha)
+{
+	// solve A T = b
+
+	int n = diffusionGrid_.getWidth() * diffusionGrid_.getHeight();
+
+	float dx = 1.0f;
+	float dy = 1.0f;
+	float lamda = dt * alpha / (dx * dx);
+	float mu = dt * alpha / (dy * dy);
+	float a = 1.0f + 2.0f * lamda + 2.0f * mu;
+
+	SparseMatrix<double> result(n);
+
+	for (int i = 0; i < n; ++i) {
+		if (i % diffusionGrid_.getHeight() == (diffusionGrid_.getHeight() - 1) || 
+			i % diffusionGrid_.getHeight() == 0 || 
+			i < diffusionGrid_.getHeight() || 
+			i >= n - diffusionGrid_.getHeight()) {
+			result.set_element(i, i, 1.0);
+		}
+		else {
+			result.set_element(i, i, a);
+			result.set_element(i - 1, i, -lamda);
+			result.set_element(i + 1, i, -mu);
+			result.set_element(i + diffusionGrid_.getHeight(), i, -mu);
+			result.set_element(i - diffusionGrid_.getHeight(), i, -lamda);
+		}
+	}
+
+	std::vector<double> b = diffusionGrid_.toVector();
+
+	// This is the part where you have to assemble the system matrix A and the right-hand side b!
+
+	// perform solve
+	double pcg_target_residual = 1e-05;
+	double pcg_max_iterations = 1000;
+	double ret_pcg_residual = 1e10;
+	int  ret_pcg_iterations = -1;
+
+	SparsePCGSolver<double> solver;
+	solver.set_solver_parameters(pcg_target_residual, pcg_max_iterations, 0.97, 0.25);
+
+	std::vector<double> x(n);
+	for (int j = 0; j < n; ++j) { x[j] = 0.; }
+
+	// preconditioners: 0 off, 1 diagonal, 2 incomplete cholesky
+	solver.solve(result, b, x, ret_pcg_residual, ret_pcg_iterations, 0);
+
+	// Final step is to extract the grid temperatures from the solution vector x
+	diffusionGrid_.insertVector(x);
+	diffusionGrid_.applyMask();
+}

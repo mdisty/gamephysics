@@ -41,39 +41,26 @@ void SpringSystem::setDamping(float damping)
 	damping_ = damping;
 }
 
-int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float initialLength, float temperatur)
+Diffusion& SpringSystem::getDiffusion()
+{
+	return diffusion_;
+}
+
+int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float initialLength, float temperatur, bool fixed)
 {
 	MassPoint other{ massPoints_.at(massPointIndex) };
 	int32_t currentGridSize{ diffusion_.getDiffusionGrid().getHeight() };
 	
-	// Calculate Grid Position TODO: Put in seperate function
+	std::tuple<size_t, size_t> newGridPos = calculateGridPositionForNewMassPoint(other, newMassPointPos);
 
-	Vec3 up{ 0.0f, 1.0f, 0.0f };
-	Vec3 newPosRelative = newMassPointPos - other.position;
-
-	double theta = std::acos(dot(up, newPosRelative) / (norm(up) * norm(newPosRelative)));
-	theta = newPosRelative.x < 0.0 ? -theta : theta;
-
-	size_t x = other.gridPosition.at(0);
-	size_t y = other.gridPosition.at(1);
-
-	if (theta <= 0.785398 && theta >= -0.785398) { // Oben
-		y += 1;
-	} 
-	else if (theta >= 0.785398 && theta <= 2.35619) { // Rechts
-		x += 1;
-	} 
-	else if (theta >= 2.35619 || theta <= -2.35619) { // Unten
-		y -= 1;
-	}  
-	else if (theta <= -0.785398 && theta >= -2.35619) { // Links
-		x -= 1;
-	}
+	size_t x = std::get<0>(newGridPos);
+	size_t y = std::get<1>(newGridPos);
 
 	bool newNeighbourPosition = diffusion_.getDiffusionGrid().insertNeighbour(x, y, static_cast<double>(temperatur));
 	
 	int32_t newGridSize{ diffusion_.getDiffusionGrid().getHeight() };
 
+	// Update gridPositions after resize
 	if (currentGridSize < newGridSize) {
 		for (auto& point : massPoints_) {
 			point.gridPosition.at(0) += (newGridSize - currentGridSize) / 2;
@@ -85,21 +72,18 @@ int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos
 
 	if (newNeighbourPosition) {
 		// Add springs with neighbours
-		int result = addMassPoint(newMassPointPos, Vec3(0.0f), {x, y}, temperatur, false);
+		int result = addMassPoint(newMassPointPos, Vec3(0.0f), {x, y}, temperatur, fixed);
 
 		addMissingSpringsToMassPoint(result, initialLength);
 
 		return result;
 	}
 
-	std::cerr << "ERROR: SpringMassPoint could not be inserted!" << std::endl;
-	return -1; // TODO: Better error handling!
+	throw std::runtime_error("ERROR: SpringMassPoint could not be inserted!");
 }
 
-void SpringSystem::calculateMidpointStep(float timeStep, float alpha)
+void SpringSystem::calculateMidpointStep(float timeStep)
 {
-	diffusion_.diffuseTemperatureExplicit(timeStep, alpha);
-
 	vector<Vec3> newPositions;
 	vector<Vec3> newVelocities;
 	vector<MassPoint> oldMassPoints(massPoints_.size());
@@ -227,7 +211,7 @@ Vec3 SpringSystem::calculateForce(Spring s, int pointIndex)
 	return -stiffness_ * (length - (s.length + average)) * d;
 }
 
-void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC)
+void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC, Vec3 hot, Vec3 zero, Vec3 cold)
 {
 	std::mt19937 eng;
 	std::uniform_real_distribution<float> randCol(0.0f, 1.0f);
@@ -238,9 +222,7 @@ void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC)
 	double min{ diffusionGrid.getMin() };
 	double max{ diffusionGrid.getMax() };
 
-	Vec3 hot { 252.0f / 255.0f, 3.0f / 255.0f, 80.0f / 255.0f };
-	Vec3 black { 10.0f / 255.0f, 0.0f / 255.0f, 30.0f / 255.0f };
-	Vec3 cold { 0.0f / 255.0f, 234.0f / 255.0f, 255.0f / 255.0f };
+	std::vector<Vec3> pointColors{};
 
 	for (int i = 0; i < massPoints_.size(); ++i) {
 		MassPoint massPoint{ massPoints_.at(i) };
@@ -251,28 +233,31 @@ void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC)
 
 		if (temp < 0.0f) {
 			if (std::abs(min) > 1.0f) temp = temp / min;
-			color = std::abs(temp) * cold + (1.0 - std::abs(temp)) * black;
+			color = std::abs(temp) * cold + (1.0 - std::abs(temp)) * zero;
 		}
 		else if (temp > 0.0f) {
 			if (std::abs(max) > 1.0f) temp = temp / max;
-			color = std::abs(temp) * hot + (1.0 - std::abs(temp)) * black;
+			color = std::abs(temp) * hot + (1.0 - std::abs(temp)) * zero;
 		}
 		else {
-			color = black;
+			color = zero;
 		}
 
-		DUC->setUpLighting(Vec3(),
-			0.4 * Vec3(1, 1, 1),
-			100, color);
+		pointColors.emplace_back(color);
+
+		DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, color);
 		DUC->drawSphere(massPoints_.at(i).position, 0.2f);
 	}
 
 	for (int i = 0; i < springs_.size(); ++i) {
+		Vec3 massPoint1Color{ pointColors.at(springs_.at(i).masspoint1) };
+		Vec3 massPoint2Color{ pointColors.at(springs_.at(i).masspoint2) };
+
 		DUC->beginLine();
 		DUC->drawLine(massPoints_.at(springs_.at(i).masspoint1).position,
-			Vec3(1.5 * randCol(eng), 0.6 * randCol(eng), 1.5 * randCol(eng)),
+			massPoint1Color,
 			massPoints_.at(springs_.at(i).masspoint2).position,
-			Vec3(1.5 * randCol(eng), 0.6 * randCol(eng), 1.5 * randCol(eng)));
+			massPoint2Color);
 		DUC->endLine();
 	}
 }
@@ -323,8 +308,6 @@ void SpringSystem::addMissingSpringsToMassPoint(int massPointIndex, float spring
 	catch (std::exception e) {
 		std::cerr << e.what() << std::endl;
 	}
-
-	//std::cerr << "WARNING: No new spring was added!" << std::endl;
 }
 
 int SpringSystem::findMassPointByGridPosition(size_t x, size_t y)
@@ -335,4 +318,31 @@ int SpringSystem::findMassPointByGridPosition(size_t x, size_t y)
 		}
 	}
 	throw std::runtime_error("ERROR: MassPoint could not be found!");
+}
+
+std::tuple<size_t, size_t> SpringSystem::calculateGridPositionForNewMassPoint(MassPoint& other, Vec3& newMassPointPos) const
+{
+	Vec3 up{ 0.0f, 1.0f, 0.0f };
+	Vec3 newPosRelative = newMassPointPos - other.position;
+
+	double theta = std::acos(dot(up, newPosRelative) / (norm(up) * norm(newPosRelative)));
+	theta = newPosRelative.x < 0.0 ? -theta : theta;
+
+	size_t x = other.gridPosition.at(0);
+	size_t y = other.gridPosition.at(1);
+
+	if (theta <= 0.785398 && theta >= -0.785398) { // Oben
+		y += 1;
+	}
+	else if (theta >= 0.785398 && theta <= 2.35619) { // Rechts
+		x += 1;
+	}
+	else if (theta >= 2.35619 || theta <= -2.35619) { // Unten
+		y -= 1;
+	}
+	else if (theta <= -0.785398 && theta >= -2.35619) { // Links
+		x -= 1;
+	}
+
+	return std::make_tuple(x, y);
 }

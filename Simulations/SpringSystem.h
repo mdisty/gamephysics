@@ -32,30 +32,48 @@ public:
 	void setStiffness(float stiffness);
 	void setDamping(float damping);
 
-	/*
-	@return index of the newly added MassPoint or -1 if not successful
-	*/
-	int insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float initialLength, float temperatur);
+	Diffusion& getDiffusion();
 
 	/*
-	Calculates one midstep step with the given timeStep.
-	Saves everything in the massPoints and springs vectors.
+	* @return index of the newly added MassPoint or -1 if not successful
 	*/
-	void calculateMidpointStep(float timeStep, float alpha);
+	int insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float initialLength, float temperatur, bool fixed);
 
 	/*
-	Calculates the force for a specific point and a spring with Hookslaw.
-	\return The calculated force as a Vec3.
+	* Calculates one midstep step with the given timeStep.
+	* Saves everything in the massPoints and springs vectors.
+	*/
+	void calculateMidpointStep(float timeStep);
+
+	/*
+	* Calculates the force for a specific point and a spring with Hookslaw.
+	* @return The calculated force as a Vec3.
 	*/
 	Vec3 calculateForce(Spring s, int pointIndex);
 
-	void drawSprings(DrawingUtilitiesClass* DUC);
+	/*
+	* Draws all the springs with the corresponding temperature colors
+	*/
+	void drawSprings(DrawingUtilitiesClass* DUC, Vec3 hot, Vec3 zero, Vec3 cold);
 private:
+	/*
+	* Adds a new MassPoint in worldspace and into the diffusion grid
+	* @return Index of the new MassPoint in the massPoints_ vector
+	*/
 	int addMassPoint(Vec3 position, Vec3 velocity, std::array<size_t, 2> gridPosition, float temperatur, bool isFixed);
 	void addSpring(int massPoint1, int massPoint2, float length);
 
+	/*
+	* Adds all the missing springs to a MassPoint depending on the diffusion grid. If the MassPoint has 
+	* a neighbour in the grid that it isn't connected with a spring will be added.
+	*/
 	void addMissingSpringsToMassPoint(int massPointIndex, float springLength);
+	/*
+	* @return Index of the MassPoint in the massPoints_ vector
+	*/
 	int findMassPointByGridPosition(size_t x, size_t y);
+
+	std::tuple<size_t, size_t> calculateGridPositionForNewMassPoint(MassPoint& other, Vec3& newMassPointPos) const;
 
 	std::vector<Spring> springs_;
 	std::vector<MassPoint> massPoints_;
