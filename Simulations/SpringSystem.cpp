@@ -46,7 +46,7 @@ Diffusion& SpringSystem::getDiffusion()
 	return diffusion_;
 }
 
-int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float initialLength, float temperatur, bool fixed)
+int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float temperatur, bool fixed)
 {
 	MassPoint other{ massPoints_.at(massPointIndex) };
 	int32_t currentGridSize{ diffusion_.getDiffusionGrid().getHeight() };
@@ -73,6 +73,8 @@ int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos
 	if (newNeighbourPosition) {
 		// Add springs with neighbours
 		int result = addMassPoint(newMassPointPos, Vec3(0.0f), {x, y}, temperatur, fixed);
+
+		auto initialLength{ norm( other.position - newMassPointPos )};
 
 		addMissingSpringsToMassPoint(result, initialLength);
 
@@ -213,9 +215,6 @@ Vec3 SpringSystem::calculateForce(Spring s, int pointIndex)
 
 void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC, Vec3 hot, Vec3 zero, Vec3 cold)
 {
-	std::mt19937 eng;
-	std::uniform_real_distribution<float> randCol(0.0f, 1.0f);
-
 	//visualization
 	auto& diffusionGrid = diffusion_.getDiffusionGrid();
 
@@ -244,6 +243,11 @@ void SpringSystem::drawSprings(DrawingUtilitiesClass* DUC, Vec3 hot, Vec3 zero, 
 		}
 
 		pointColors.emplace_back(color);
+
+		// If mass is selected draw red
+		if (massPoints_.at(i).selected) {
+			color = Vec3(1.0, 0.0, 0.0);
+		}
 
 		DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, color);
 		DUC->drawSphere(massPoints_.at(i).position, 0.2f);
