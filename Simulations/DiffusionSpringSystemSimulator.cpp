@@ -10,7 +10,7 @@ DiffusionSpringSystemSimulator::DiffusionSpringSystemSimulator() : springSystem_
 }
 
 const char* DiffusionSpringSystemSimulator::getTestCasesStr() {
-	return "Demo,Demo2,Demo3";
+	return "Demo,Demo2,Demo3,Demo4";
 }
 
 void DiffusionSpringSystemSimulator::reset() {
@@ -83,22 +83,91 @@ void DiffusionSpringSystemSimulator::notifyCaseChanged(int testCase)
 		reset();
 
 		try {
+			std::random_device rand_device;
+			std::mt19937 generator(rand_device());
+			std::uniform_real_distribution<double> distribution(-10.0, 10.0);
 
-			springSystem_.insertSpringMassPoint(0, Vec3(0.0f, 1.0f, 0.0f), 1.0f, false); // 1
-			springSystem_.insertSpringMassPoint(0, Vec3(1.0f, 0.0f, 0.0f), 0.0f, false);
-			springSystem_.insertSpringMassPoint(0, Vec3(-1.0f, 0.0f, 0.0f), 0.0f, false);
-			springSystem_.insertSpringMassPoint(0, Vec3(0.0f, -1.0f, 0.0f), 0.0f, false);
+			int size = 2000;
 
-			springSystem_.insertSpringMassPoint(1, Vec3(0.0f, 2.0f, 0.0f), 0.0f, false); // 5
-			springSystem_.insertSpringMassPoint(1, Vec3(1.0f, 1.0f, 0.0f), 0.0f, false);
-			springSystem_.insertSpringMassPoint(1, Vec3(-1.0f, 1.0f, 0.0f), 0.0f, false);
+			for (int idx = 0; idx < size; ++idx) {
+				Vec3 mp = springSystem_.getMassPoint(idx).position;
 
-			springSystem_.insertSpringMassPoint(5, Vec3(1.0f, 2.0f, 0.0f), 3.0f, false);
-			springSystem_.insertSpringMassPoint(5, Vec3(-1.0f, 2.0f, 0.0f), -3.0f, false);
+				springSystem_.insertSpringMassPoint(idx, mp + Vec3(0.0f, 0.5f, 0.0f), distribution(generator), false);
+				springSystem_.insertSpringMassPoint(idx, mp + Vec3(0.5f, 0.0f, 0.0f), distribution(generator), false);
+				springSystem_.insertSpringMassPoint(idx, mp + Vec3(-0.5f, 0.0f, 0.0f), distribution(generator), false);
+				springSystem_.insertSpringMassPoint(idx, mp + Vec3(0.0f, -0.5f, 0.0f), distribution(generator), false);
+			}
 
 		} catch (std::exception e) {
 			std::cerr << e.what() << std::endl;
 		}
+
+		break; }
+	case 3: {
+		reset();
+
+		// Up
+		springSystem_.insertSpringMassPoint(0, Vec3(0.0f, 1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(1, Vec3(0.0f, 2.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(2, Vec3(0.0f, 3.0f, 0.0f), -5.0f, false);
+
+		// Left
+		springSystem_.insertSpringMassPoint(3, Vec3(-1.0f, 3.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(4, Vec3(-1.0f, 2.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(5, Vec3(-1.0f, 1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(6, Vec3(-1.0f, 0.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(7, Vec3(-1.0f, -1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(8, Vec3(-1.0f, -2.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(9, Vec3(-1.0f, -3.0f, 0.0f), -5.0f, false);
+
+		springSystem_.insertSpringMassPoint(4, Vec3(-2.0f, 3.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(11, Vec3(-2.0f, 2.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(12, Vec3(-2.0f, 1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(13, Vec3(-2.0f, 0.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(14, Vec3(-2.0f, -1.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(15, Vec3(-2.0f, -2.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(16, Vec3(-2.0f, -3.0f, 0.0f), -5.0f, false);
+
+		springSystem_.insertSpringMassPoint(11, Vec3(-3.0f, 3.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(18, Vec3(-3.0f, 2.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(19, Vec3(-3.0f, 1.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(20, Vec3(-3.0f, 0.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(21, Vec3(-3.0f, -1.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(22, Vec3(-3.0f, -2.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(23, Vec3(-3.0f, -3.0f, 0.0f), -5.0f, false);
+
+		// Right
+		springSystem_.insertSpringMassPoint(3, Vec3(1.0f, 3.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(25, Vec3(1.0f, 2.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(26, Vec3(1.0f, 1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(27, Vec3(1.0f, 0.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(28, Vec3(1.0f, -1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(29, Vec3(1.0f, -2.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(30, Vec3(1.0f, -3.0f, 0.0f), -5.0f, false);
+
+		springSystem_.insertSpringMassPoint(25, Vec3(2.0f, 3.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(32, Vec3(2.0f, 2.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(33, Vec3(2.0f, 1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(34, Vec3(2.0f, 0.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(35, Vec3(2.0f, -1.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(36, Vec3(2.0f, -2.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(37, Vec3(2.0f, -3.0f, 0.0f), -5.0f, false);
+
+		springSystem_.insertSpringMassPoint(32, Vec3(3.0f, 3.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(39, Vec3(3.0f, 2.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(40, Vec3(3.0f, 1.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(41, Vec3(3.0f, 0.0f, 0.0f), 0.0f, false);
+		springSystem_.insertSpringMassPoint(42, Vec3(3.0f, -1.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(43, Vec3(3.0f, -2.0f, 0.0f), -5.0f, false);
+		springSystem_.insertSpringMassPoint(44, Vec3(3.0f, -3.0f, 0.0f), -5.0f, false);
+
+		// Down
+		springSystem_.insertSpringMassPoint(0, Vec3(0.0f, -1.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(46, Vec3(0.0f, -2.0f, 0.0f), 5.0f, false);
+		springSystem_.insertSpringMassPoint(47, Vec3(0.0f, -3.0f, 0.0f), 0.0f, false);
+
+		// Middle
+		springSystem_.setTemperature(0, 5.0);
 
 		break; }
 	default:

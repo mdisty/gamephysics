@@ -60,6 +60,11 @@ void SpringSystem::setTemperature(int massPointIndex, float temp)
 
 }
 
+MassPoint& SpringSystem::getMassPoint(int index)
+{
+	return massPoints_.at(index);
+}
+
 Diffusion& SpringSystem::getDiffusion()
 {
 	return diffusion_;
@@ -326,7 +331,7 @@ void SpringSystem::addMissingSpringsToMassPoint(int massPointIndex, float spring
 	size_t x = massPoint.gridPosition.at(0);
 	size_t y = massPoint.gridPosition.at(1);
 
-	std::cerr << "DEBUG: MassPoint Position: x: " << x << " y: " << y << std::endl;
+	// std::cerr << "DEBUG: MassPoint Position: x: " << x << " y: " << y << std::endl;
 
 	std::array<size_t, 2> slot1{ x + 1, y };
 	std::array<size_t, 2> slot2{ x, y + 1 };

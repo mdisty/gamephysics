@@ -37,6 +37,8 @@ public:
 	void setSelected(boolean selected, int i);
 	void setTemperature(int massPointIndex, float temp);
 
+	MassPoint& getMassPoint(int index);
+
 	Diffusion& getDiffusion();
 
 	/*
