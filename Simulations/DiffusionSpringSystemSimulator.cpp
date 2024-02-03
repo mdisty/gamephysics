@@ -88,7 +88,7 @@ void DiffusionSpringSystemSimulator::notifyCaseChanged(int testCase)
 			std::mt19937 generator(rand_device());
 			std::uniform_real_distribution<double> distribution(-10.0, 10.0);
 
-			int size = 2000;
+			int size = 3000;
 
 			for (int idx = 0; idx < size; ++idx) {
 				Vec3 mp = springSystem_.getMassPoint(idx).position;
