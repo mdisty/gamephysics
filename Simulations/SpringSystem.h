@@ -5,6 +5,8 @@
 
 #include <variant>
 
+#include "Ray.h"
+
 class MassPoint {
 public:
 	MassPoint(Vec3 position = Vec3(0.0f), Vec3 veloctiy = Vec3(0.0f), std::array<size_t, 2> gridPosition = {0, 0}, bool isFixed = false);
@@ -32,8 +34,15 @@ public:
 	void setMass(float mass);
 	void setStiffness(float stiffness);
 	void setDamping(float damping);
+	void setSelected(boolean selected, int i);
+	void setTemperature(int massPointIndex, float temp);
 
 	Diffusion& getDiffusion();
+
+	/*
+	* @return index of the MassPoint intersected by the Ray
+	*/
+	int getSphereIndex(Ray r);
 
 	/*
 	* @return index of the newly added MassPoint or -1 if not successful

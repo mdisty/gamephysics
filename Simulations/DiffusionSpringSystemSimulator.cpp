@@ -24,7 +24,16 @@ void DiffusionSpringSystemSimulator::reset() {
 void DiffusionSpringSystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 {
 	this->DUC = DUC;
+	
+	TwAddSeparator(DUC->g_pTweakBar, "", NULL);
+	TwAddButton(DUC->g_pTweakBar, "Simulation Tools", NULL, NULL, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Start Simulation", TW_TYPE_BOOLCPP, &startSimulation_, "");
+	TwEnumVal Tools[] = { {ADDNODE, "Add Node"}, {CHANGETEMP, "Change Temperature"} };
+	TwType ToolsTwType = TwDefineEnum("ToolType", Tools, 2);
+	TwAddVarRW(DUC->g_pTweakBar, "Tool", ToolsTwType, &m_tool, "");
+	TwAddVarRW(DUC->g_pTweakBar, "Temperature", TW_TYPE_FLOAT, &temperature_, "");
+	TwAddSeparator(DUC->g_pTweakBar, "", NULL);
+	TwAddButton(DUC->g_pTweakBar, "Temperature Colors", NULL, NULL, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Hot Color", TW_TYPE_COLOR3F, &hotColor, "colormode=rgb");
 	TwAddVarRW(DUC->g_pTweakBar, "Cold Color", TW_TYPE_COLOR3F, &coldColor, "colormode=rgb");
 	TwAddVarRW(DUC->g_pTweakBar, "Zero Color", TW_TYPE_COLOR3F, &zeroColor, "colormode=rgb");
@@ -113,6 +122,42 @@ void DiffusionSpringSystemSimulator::onClick(int x, int y)
 {
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+
+	Ray r = getRay(m_trackmouse);
+
+	switch (m_tool)
+	{
+	case ADDNODE:
+	{
+		if (selectedSphere_) {
+			if (m_tool == ADDNODE) {
+				springSystem_.insertSpringMassPoint(sphereIndex, r.intersectPlane(Vec3(0., 0., -1.)), temperature_, false);
+				selectedSphere_ = false;
+				springSystem_.setSelected(false, sphereIndex);
+			}
+			return;
+		}
+
+		sphereIndex = springSystem_.getSphereIndex(r);
+		if (sphereIndex >= 0) {
+			springSystem_.setSelected(true, sphereIndex);
+			selectedSphere_ = true;
+		}
+		else cout << "No sphere was hit" << endl;
+
+		return;
+	}
+	case CHANGETEMP:
+	{
+		sphereIndex = springSystem_.getSphereIndex(r);
+		if (sphereIndex >= 0) {
+			springSystem_.setTemperature(sphereIndex, temperature_);
+		}
+		else cout << "Couldnt find sphere to change color" << endl;
+	}
+	default:
+		break;
+	}
 }
 
 void DiffusionSpringSystemSimulator::onMouse(int x, int y)
@@ -121,4 +166,33 @@ void DiffusionSpringSystemSimulator::onMouse(int x, int y)
 	m_oldtrackmouse.y = y;
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+}
+
+Ray DiffusionSpringSystemSimulator::getRay(Point2D mouse)
+{
+	Vec3 origin = Vec3(DUC->g_camera.GetEyePt());
+
+	long height = DXUTGetWindowHeight();
+	long width = DXUTGetWindowWidth();
+
+	// mouse -> ndc [-1,1]
+	double mouseWidth = (2 * (double)mouse.x) / width - 1;
+
+	double mouseHeight = (-1) * ((2 * (double)mouse.y) / height - 1);
+	// z coordinate we ignore :D is 0.
+
+	// create 3d vec because we need to use mat4 multiplication :D
+	Vec3 MouseNDC = Vec3(mouseWidth, mouseHeight, 0.);
+
+	// ndc -> view frustrum
+	Mat4 projectionMatrix = Mat4(DUC->g_camera.GetProjMatrix());
+	Vec3 frustrumMouse = projectionMatrix.inverse().transformVector(MouseNDC);
+
+	// view frustrum -> world space
+	Mat4 viewMatrix = Mat4(DUC->g_camera.GetViewMatrix());
+	Vec3 worldMouse = viewMatrix.inverse().transformVector(frustrumMouse);
+
+	Vec3 direction = getNormalized(worldMouse - origin);
+
+	return Ray(direction, origin);
 }

@@ -41,9 +41,43 @@ void SpringSystem::setDamping(float damping)
 	damping_ = damping;
 }
 
+void SpringSystem::setSelected(boolean selected, int i)
+{
+	if (selected) {
+		massPoints_.at(i).selected = true;
+	}
+	else massPoints_.at(i).selected = false;
+}
+
+void SpringSystem::setTemperature(int massPointIndex, float temp)
+{
+	MassPoint massPoint = massPoints_.at(massPointIndex);
+
+	size_t x = massPoint.gridPosition.at(0);
+	size_t y = massPoint.gridPosition.at(1);
+
+	diffusion_.getDiffusionGrid().setValue(x, y, temp);
+
+}
+
 Diffusion& SpringSystem::getDiffusion()
 {
 	return diffusion_;
+}
+
+int SpringSystem::getSphereIndex(Ray r)
+{
+	int index = -1;
+
+	for (int i = 0; i < massPoints_.size(); i++) {
+
+		double distance = r.distance(massPoints_.at(i).position).first;
+		// Drawn sphere as scale of 0.2f
+		if (distance <= 0.2) {
+			index = i;
+		}
+	}
+	return index;
 }
 
 int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float temperatur, bool fixed)

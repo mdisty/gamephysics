@@ -3,6 +3,9 @@
 
 #include "Simulator.h"
 #include "SpringSystem.h"
+#include "Ray.h"
+
+typedef enum { ADDNODE, CHANGETEMP } TOOL;
 
 class DiffusionSpringSystemSimulator: public Simulator{
 public:
@@ -20,7 +23,8 @@ public:
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
 
-	// Specific Functions
+	// Ray Functions
+	Ray getRay(Point2D mouse);
 
 	// Attributes
 	Point2D m_mouse{};
@@ -34,6 +38,14 @@ private:
 	std::array<float, 3> hotColor;
 	std::array<float, 3> coldColor;
 	std::array<float, 3> zeroColor;
+
+	bool changeTemp_{ false };
+	bool selectedSphere_{ false };
+	float temperature_{ 0.0 };
+
+	TOOL m_tool = ADDNODE;
+
+	int sphereIndex = -1;
 };
 
 #endif
