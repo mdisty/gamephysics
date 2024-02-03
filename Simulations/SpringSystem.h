@@ -47,7 +47,7 @@ public:
 	/*
 	* @return index of the newly added MassPoint or -1 if not successful
 	*/
-	int insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float temperatur, bool fixed);
+	void insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float temperatur, bool fixed);
 
 	/*
 	* Calculates one midstep step with the given timeStep.

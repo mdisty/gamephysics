@@ -80,9 +80,15 @@ int SpringSystem::getSphereIndex(Ray r)
 	return index;
 }
 
-int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float temperatur, bool fixed)
+void SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos, float temperatur, bool fixed)
 {
 	MassPoint other{ massPoints_.at(massPointIndex) };
+
+	auto distance = norm(newMassPointPos - other.position);
+	if (distance <= 0.4f) {
+		return;
+	}
+
 	int32_t currentGridSize{ diffusion_.getDiffusionGrid().getHeight() };
 	
 	std::tuple<size_t, size_t> newGridPos = calculateGridPositionForNewMassPoint(other, newMassPointPos);
@@ -112,10 +118,10 @@ int SpringSystem::insertSpringMassPoint(int massPointIndex, Vec3 newMassPointPos
 
 		addMissingSpringsToMassPoint(result, initialLength);
 
-		return result;
+		return;
 	}
 
-	throw std::runtime_error("ERROR: SpringMassPoint could not be inserted!");
+	//throw std::runtime_error("ERROR: SpringMassPoint could not be inserted!");
 }
 
 void SpringSystem::calculateMidpointStep(float timeStep)
