@@ -42,6 +42,7 @@ private:
 	bool changeTemp_{ false };
 	bool selectedSphere_{ false };
 	float temperature_{ 0.0 };
+	float alpha_{ 0.05f };
 
 	TOOL m_tool = ADDNODE;
 

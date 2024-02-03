@@ -32,6 +32,7 @@ void DiffusionSpringSystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 	TwType ToolsTwType = TwDefineEnum("ToolType", Tools, 2);
 	TwAddVarRW(DUC->g_pTweakBar, "Tool", ToolsTwType, &m_tool, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Temperature", TW_TYPE_FLOAT, &temperature_, "");
+	TwAddVarRW(DUC->g_pTweakBar, "Alpha", TW_TYPE_FLOAT, &alpha_, "");
 	TwAddSeparator(DUC->g_pTweakBar, "", NULL);
 	TwAddButton(DUC->g_pTweakBar, "Temperature Colors", NULL, NULL, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Hot Color", TW_TYPE_COLOR3F, &hotColor, "colormode=rgb");
@@ -185,7 +186,7 @@ void DiffusionSpringSystemSimulator::simulateTimestep(float timeStep)
 {
 	if (!startSimulation_) return;
 
-	springSystem_.getDiffusion().diffuseTemperatureImplicit(timeStep, 0.05f);
+	springSystem_.getDiffusion().diffuseTemperatureImplicit(timeStep, alpha_);
 	springSystem_.calculateMidpointStep(timeStep);
 }
 
