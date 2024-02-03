@@ -10,7 +10,7 @@ DiffusionSpringSystemSimulator::DiffusionSpringSystemSimulator() : springSystem_
 }
 
 const char* DiffusionSpringSystemSimulator::getTestCasesStr() {
-	return "Demo,Demo2";
+	return "Demo,Demo2,Demo3";
 }
 
 void DiffusionSpringSystemSimulator::reset() {
@@ -53,7 +53,7 @@ void DiffusionSpringSystemSimulator::notifyCaseChanged(int testCase)
 	m_iTestCase = testCase;
 	switch (m_iTestCase)
 	{
-	case 0:{
+	case 0: {
 		reset();
 
 		try {
@@ -79,6 +79,28 @@ void DiffusionSpringSystemSimulator::notifyCaseChanged(int testCase)
 		reset();
 
 		break; }
+	case 2: {
+		reset();
+
+		try {
+
+			springSystem_.insertSpringMassPoint(0, Vec3(0.0f, 1.0f, 0.0f), 1.0f, false); // 1
+			springSystem_.insertSpringMassPoint(0, Vec3(1.0f, 0.0f, 0.0f), 0.0f, false);
+			springSystem_.insertSpringMassPoint(0, Vec3(-1.0f, 0.0f, 0.0f), 0.0f, false);
+			springSystem_.insertSpringMassPoint(0, Vec3(0.0f, -1.0f, 0.0f), 0.0f, false);
+
+			springSystem_.insertSpringMassPoint(1, Vec3(0.0f, 2.0f, 0.0f), 0.0f, false); // 5
+			springSystem_.insertSpringMassPoint(1, Vec3(1.0f, 1.0f, 0.0f), 0.0f, false);
+			springSystem_.insertSpringMassPoint(1, Vec3(-1.0f, 1.0f, 0.0f), 0.0f, false);
+
+			springSystem_.insertSpringMassPoint(5, Vec3(1.0f, 2.0f, 0.0f), 3.0f, false);
+			springSystem_.insertSpringMassPoint(5, Vec3(-1.0f, 2.0f, 0.0f), -3.0f, false);
+
+		} catch (std::exception e) {
+			std::cerr << e.what() << std::endl;
+		}
+
+		break; }
 	default:
 		cout << "Empty Test!\n";
 		break;
@@ -94,21 +116,8 @@ void DiffusionSpringSystemSimulator::simulateTimestep(float timeStep)
 {
 	if (!startSimulation_) return;
 
-	switch (m_iTestCase)
-	{
-	case 0: {
-		springSystem_.getDiffusion().diffuseTemperatureImplicit(timeStep, 0.05f);
-		springSystem_.calculateMidpointStep(timeStep);
-		break; 
-	}
-	case 1: {
-		springSystem_.getDiffusion().diffuseTemperatureImplicit(timeStep, 0.05f);
-		springSystem_.calculateMidpointStep(timeStep);
-		break;
-	}
-	default:
-		break;
-	}
+	springSystem_.getDiffusion().diffuseTemperatureImplicit(timeStep, 0.05f);
+	springSystem_.calculateMidpointStep(timeStep);
 }
 
 void DiffusionSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
@@ -117,18 +126,7 @@ void DiffusionSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediat
 	Vec3 zero{ zeroColor.at(0), zeroColor.at(1), zeroColor.at(2) };
 	Vec3 cold{ coldColor.at(0), coldColor.at(1), coldColor.at(2) };
 
-	switch (m_iTestCase)
-	{
-	case 0: {
-		springSystem_.drawSprings(DUC, hot, zero, cold);
-		break; 
-	}
-	case 1: {
-		springSystem_.drawSprings(DUC, hot, zero, cold);
-		break;
-	}
-	default: break;
-	}
+	springSystem_.drawSprings(DUC, hot, zero, cold);
 }
 
 void DiffusionSpringSystemSimulator::onClick(int x, int y)
